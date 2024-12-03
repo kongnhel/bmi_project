@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMI Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Baskervville+SC&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Khmer&family=Moul&family=Noto+Sans+Khmer:wght@100..900&family=Roboto+Slab:wght@100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Rubik:ital,wght@0,300..900;1,300..900&family=Sevillana&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="main-content-1">
+        <h2>គណនាសន្ទស្សន៍ម៉ាសរាងកាយ</h2>
+        <div class="main-content">
+            <!-- BMI Calculator Section -->
+            <div class="bmi-calculator">
+                <form id="bmiForm">
+                    <div class="form-group">
+                        <label for="weight">សូមបញ្ចូលទម្ងន់​ របស់អ្នក (គីឡូក្រាម/Kg):</label>
+                        <input type="number" placeholder="សូមបញ្ចូលទម្ងន់​ របស់អ្នកនៅទីនេះ" id="weight" name="weight"​ required min="1" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="height">សូមបញ្ចូលកម្ពស់​ របស់អ្នក (សង់ទីម៉ែត្រ/cm):</label>
+                        <input type="number" placeholder="សូមបញ្ចូលកម្ពស់​ របស់អ្នកនៅទីនេះ" id="height" name="height" required min="1" class="form-control" />
+                    </div>
+                    <div class="button-group">
+                        <button type="button" id="calculateBtn">គណនា</button>
+                        <button type="button" id="resetBtn">លុប</button>
+                    </div>
+                </form>
+                <div class="result" id="result" style="display: none;">
+                    <h3>លទ្ធផល:</h3>
+                    <p>សន្ទស្សន៍ម៉ាសរាងកាយ​របស់អ្នក: <strong id="bmiResult"></strong> kg/m<sup>2</sup></p>
+                    <p>ស្ថានភាពរាងកាយ: <strong class="bmi-category" id="bmiCategory"></strong></p>
+                    <p id="bmiNeedContainer" style="display: none;">Bmiត្រូវការ៖ <strong id="bmiNeed"></strong>
+                        kg/m<sup>2</sup></p>
+                    <p id="bmiOverContainer" style="display: none;">Bmiលើស៖ <strong id="bmiOver"></strong>
+                        kg/m<sup>2</sup></p>
+                    <p>អ្នកត្រូវ៖ <strong class="bmi-category" id="att"></strong></p>
+                </div>
+            </div>
+        </div>
+        <div class="document">
+            <div class="bmi-using">
+                <h3>របៀបគណនា</h3>
+                <ul class="bmi-using-data">
+                    <li>បញ្ចូលទម្ងន់របស់អ្នកជាគីឡូក្រាម(kg)</li>
+                    <li>បញ្ចូលកម្ពស់របស់អ្នកជាសង់ទីម៉ែត្រ(Cm)</li>
+                    <li>ចុចប៊ូតុង "គណនា" ដើម្បីគណនា</li>
+                    <li>ចុចប៊ូតុងក្រហម (លុប) ដើម្បីលុប</li>
+                    <li>លទ្ធផលនឹងបង្ហាញនៅខាងក្រោម</li>
+                    <h3>ខ្នាត</h3>
+                    <li>1 m​ = 39.3701​ inch</li>
+                    <li>1 kg​ = 2.20462 pound</li>
+                </ul>
+            </div>
+            <div class="bmi-table-container">
+                <h3>តារាង BMI មនុស្សទូទៅ</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ចំណាត់ថ្នាក់</th>
+                            <th>BMI range - kg/m²</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ស្គមខ្លាំង</td>
+                            <td>&lt; 16</td>
+                        </tr>
+                        <tr>
+                            <td>ស្គមមធ្យម</td>
+                            <td>16 - 17</td>
+                        </tr>
+                        <tr>
+                            <td>ស្គម</td>
+                            <td>17 - 18.5</td>
+                        </tr>
+                        <tr>
+                            <td>ធម្មតា</td>
+                            <td>18.5 - 25</td>
+                        </tr>
+                        <tr>
+                            <td>លើលទម្ងន់</td>
+                            <td>25 - 30</td>
+                        </tr>
+                        <tr>
+                            <td>ធាត់ កម្រិត១</td>
+                            <td>30 - 35</td>
+                        </tr>
+                        <tr>
+                            <td>ធាត់ កម្រិត២</td>
+                            <td>35 - 40</td>
+                        </tr>
+                        <tr>
+                            <td>ធាត់ កម្រិត៣</td>
+                            <td>&gt; 40</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
