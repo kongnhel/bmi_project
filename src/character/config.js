@@ -20,6 +20,10 @@ export const MODEL_CONFIG = Object.freeze({
     obesity2: 'Empathetic',
     obesity3: 'Support',
   }),
+  bodyMorphs: Object.freeze({
+    lean: 'BodyLean',
+    volume: 'BodyVolume',
+  }),
   /**
    * Morph target names are intentionally configurable. The defaults use
    * ARKit-style blendshape names commonly found on production avatar rigs.

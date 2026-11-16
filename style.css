@@ -3293,6 +3293,27 @@ html[lang="km"] .footer-col h3 {
     }
 }
 
+.assistant-shape-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 30px;
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+    color: var(--muted);
+    font-size: 9.5px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.assistant-shape-badge .icon {
+    width: 12px;
+    height: 12px;
+    color: var(--accent);
+}
 .assistant-viewport {
     position: absolute;
     inset: 54px 6px 104px;
@@ -3538,7 +3559,8 @@ html[lang="km"] .assistant-role {
 
 .assistant-bubble {
     position: relative;
-    margin-block: auto;
+    margin-top: 22px;
+    margin-bottom: auto;
     padding: clamp(20px, 2.6vw, 28px);
     border: 1px solid var(--line);
     border-radius: 8px 24px 24px 24px;
@@ -3571,6 +3593,183 @@ html[lang="km"] .assistant-bubble p {
     line-height: 1.9;
 }
 
+.assistant-gender {
+    margin-top: 20px;
+}
+
+.assistant-gender[hidden] {
+    display: none !important;
+}
+
+.assistant-gender-label {
+    color: var(--faint);
+    font-size: 9.5px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+html[lang="km"] .assistant-gender-label {
+    letter-spacing: 0;
+    text-transform: none;
+    font-size: 10.5px;
+}
+
+.assistant-gender-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 8px;
+}
+
+.gender-card {
+    position: relative;
+    min-height: 112px;
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background:
+        radial-gradient(120% 90% at 50% 0%, var(--accent-soft) 0%, transparent 68%),
+        var(--surface-2);
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease),
+        transform 0.2s var(--ease), background-color 0.2s var(--ease);
+}
+
+.gender-card:hover {
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-2);
+    transform: translateY(-1px);
+}
+
+.gender-card.is-selected {
+    border-color: var(--accent);
+    background:
+        radial-gradient(120% 90% at 50% 0%, var(--accent-soft-2) 0%, transparent 72%),
+        var(--surface);
+    box-shadow: 0 0 0 1px var(--accent), var(--shadow-1);
+}
+
+.gender-preview {
+    position: absolute;
+    inset: 0 0 22px;
+    display: block;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.gender-preview canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 28%;
+    opacity: 0;
+    transition: opacity 0.35s var(--ease);
+}
+
+.assistant-gender.has-previews .gender-preview canvas {
+    opacity: 1;
+}
+
+.assistant-gender.is-loading .gender-preview::before {
+    content: "";
+    position: absolute;
+    inset: 14px 24px 10px;
+    border-radius: 999px 999px 18px 18px;
+    background: linear-gradient(100deg, var(--accent-soft) 20%, var(--surface) 45%, var(--accent-soft) 70%);
+    background-size: 220% 100%;
+    opacity: 0.7;
+    animation: gender-shimmer 1.2s linear infinite;
+}
+
+@keyframes gender-shimmer {
+    from {
+        background-position: 120% 0;
+    }
+    to {
+        background-position: -120% 0;
+    }
+}
+
+.assistant-gender.is-preview-failed .gender-preview::before {
+    content: "3D";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    transform: translate(-50%, -50%);
+}
+.gender-name {
+    position: absolute;
+    right: 10px;
+    bottom: 7px;
+    left: 10px;
+    z-index: 2;
+    color: var(--ink);
+    font-size: 11.5px;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.gender-check {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    z-index: 3;
+    display: none;
+    place-items: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    box-shadow: var(--shadow-1);
+}
+
+.gender-check .icon {
+    width: 11px;
+    height: 11px;
+    stroke-width: 2.2;
+}
+
+.gender-card.is-selected .gender-check {
+    display: grid;
+}
+
+.assistant-visual-disclaimer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+    max-width: 78ch;
+    margin: 14px auto 0;
+    color: var(--muted);
+    font-size: 10.5px;
+    line-height: 1.65;
+    text-align: center;
+}
+
+.assistant-visual-disclaimer .icon {
+    flex: none;
+    width: 13px;
+    height: 13px;
+    margin-top: 2px;
+    color: var(--accent);
+}
 .assistant-panel-footer {
     display: flex;
     align-items: center;
@@ -4238,6 +4437,20 @@ html[lang="km"] .assistant-bubble p {
         top: 14px;
         right: 14px;
         left: 14px;
+        flex-wrap: wrap;
+    }
+
+    .assistant-shape-badge {
+        max-width: 160px;
+        font-size: 9px;
+    }
+
+    .assistant-gender {
+        margin-top: 16px;
+    }
+
+    .gender-card {
+        min-height: 104px;
     }
 
     .assistant-viewport {
@@ -4314,6 +4527,10 @@ html[lang="km"] .assistant-bubble p {
     .assistant-state-pill {
         font-size: 10px;
         padding-inline: 8px;
+    }
+
+    .gender-card {
+        min-height: 96px;
     }
 
     .assistant-bubble p {

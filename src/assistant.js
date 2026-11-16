@@ -3,6 +3,7 @@ import {
   getAssistantMessageKey,
   getCharacterStateForCategory,
 } from './character/state.js';
+import { getBodyShapeKey, getBodyShapeLevel } from './character/body-shape.js';
 
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -12,6 +13,8 @@ const view = {
   categoryKey: null,
   bmi: null,
   age: null,
+  gender: 'male',
+  onGenderChange: null,
   voiceEnabled: false,
   voiceSupported: false,
   reducedMotion: reducedMotionQuery.matches,
@@ -56,6 +59,12 @@ function cacheElements() {
     statePill: byId('assistantStatePill'),
     voiceButton: byId('assistantVoiceBtn'),
     voiceLabel: byId('assistantVoiceLabel'),
+    genderGroup: byId('assistantGender'),
+    genderButtons: [...document.querySelectorAll('.gender-card')],
+    previewMale: byId('assistantPreviewMale'),
+    previewFemale: byId('assistantPreviewFemale'),
+    shapeBadge: byId('assistantShapeBadge'),
+    shapeLabel: byId('assistantShapeLabel'),
     status: byId('assistantStatus'),
     rotateLeft: byId('assistantRotateLeft'),
     rotateRight: byId('assistantRotateRight'),
@@ -73,6 +82,28 @@ function setControlsEnabled(enabled) {
   }
 }
 
+function bodyShapeLabelKey() {
+  return `assistant.shape.${getBodyShapeKey(getBodyShapeLevel(currentStateKey()))}`;
+}
+
+function updateShapeDisplay() {
+  if (!elements?.shapeLabel) return;
+  elements.shapeLabel.textContent = t(view.language, bodyShapeLabelKey());
+  if (elements.section) {
+    elements.section.dataset.bodyShape = getBodyShapeKey(getBodyShapeLevel(currentStateKey()));
+  }
+}
+
+function updateGenderUi() {
+  if (!elements?.genderButtons?.length) return;
+  for (const button of elements.genderButtons) {
+    const selected = button.dataset.gender === view.gender;
+    button.setAttribute('aria-pressed', String(selected));
+    button.classList.toggle('is-selected', selected);
+  }
+  if (elements.stage) elements.stage.dataset.gender = view.gender;
+}
+
 function updateEngineBadge() {
   const badgeKey = view.sceneStatus === 'ready'
     ? 'assistant.badge3d'
@@ -83,6 +114,12 @@ function updateEngineBadge() {
   if (elements.stage) {
     elements.stage.dataset.engine = view.sceneStatus === 'idle' ? 'loading' : view.sceneStatus;
     elements.stage.dataset.character = scene?.model ? 'glb' : 'procedural';
+  }
+  if (elements.shapeBadge) {
+    elements.shapeBadge.hidden = view.sceneStatus === 'fallback';
+  }
+  if (elements.genderGroup) {
+    elements.genderGroup.hidden = view.sceneStatus === 'fallback';
   }
 }
 
@@ -102,6 +139,7 @@ function updateContent({ speak = false } = {}) {
 
   elements.section.dataset.assistantState = stateKey;
   elements.stage.dataset.state = stateKey;
+  updateShapeDisplay();
   scene?.setCharacterState(stateKey);
 
   if (speak && view.voiceEnabled) {
@@ -198,10 +236,30 @@ function showScene() {
   setControlsEnabled(true);
   updateEngineBadge();
   elements.status.textContent = t(view.language, 'assistant.sceneReady');
+  loadGenderPreviews();
 }
 
 function onSceneError(error) {
   showFallback(error);
+}
+
+async function loadGenderPreviews() {
+  if (!elements?.previewMale || !elements?.previewFemale) return;
+  elements.genderGroup?.classList.add('is-loading');
+  elements.genderGroup?.classList.remove('has-previews', 'is-preview-failed');
+
+  try {
+    const { generateGenderPreviews } = await import('./character/preview.js');
+    await generateGenderPreviews({
+      maleCanvas: elements.previewMale,
+      femaleCanvas: elements.previewFemale,
+    });
+    elements.genderGroup?.classList.remove('is-loading', 'is-preview-failed');
+    elements.genderGroup?.classList.add('has-previews');
+  } catch {
+    elements.genderGroup?.classList.remove('is-loading', 'has-previews');
+    elements.genderGroup?.classList.add('is-preview-failed');
+  }
 }
 
 function bindControls() {
@@ -211,6 +269,12 @@ function bindControls() {
   elements.zoomOut?.addEventListener('click', () => scene?.zoomBy(-0.35));
   elements.reset?.addEventListener('click', () => scene?.resetCamera());
   elements.voiceButton?.addEventListener('click', toggleVoice);
+
+  for (const button of elements.genderButtons ?? []) {
+    button.addEventListener('click', () => {
+      assistant.setGender(button.dataset.gender);
+    });
+  }
 }
 
 function setupObserver() {
@@ -256,6 +320,7 @@ async function startScene() {
     if (view.sceneStatus === 'fallback') return;
     const nextScene = new AssistantScene(elements.canvas, {
       container: elements.viewport,
+      gender: view.gender,
       onError: onSceneError,
       onModelInfo: (info) => {
         if (elements.stage) elements.stage.dataset.character = info.active ? 'glb' : 'procedural';
@@ -266,6 +331,7 @@ async function startScene() {
     nextScene.setReducedMotion(view.reducedMotion);
     scene = nextScene;
     showScene();
+    scene.setGender(view.gender);
     scene.setCharacterState(currentStateKey());
     scene.setActive(view.visible && !document.hidden);
   } catch {
@@ -283,18 +349,21 @@ function handleVisibilityChange() {
 }
 
 export const assistant = {
-  init({ language = 'en', theme = 'light' } = {}) {
+  init({ language = 'en', theme = 'light', gender = 'male', onGenderChange = null } = {}) {
     if (view.initialized) return;
     if (!cacheElements()) return;
     view.initialized = true;
     view.language = language;
     view.theme = theme;
+    view.gender = gender === 'female' ? 'female' : 'male';
+    view.onGenderChange = typeof onGenderChange === 'function' ? onGenderChange : null;
     view.voiceSupported = Boolean(
       window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function',
     );
 
     bindControls();
     updateVoiceUi();
+    updateGenderUi();
     updateEngineBadge();
     setupObserver();
 
@@ -315,6 +384,17 @@ export const assistant = {
   setTheme(theme) {
     view.theme = theme === 'dark' ? 'dark' : 'light';
     scene?.setTheme(view.theme);
+  },
+
+  setGender(gender, { notify = true } = {}) {
+    const next = gender === 'female' ? 'female' : 'male';
+    const changed = next !== view.gender;
+    view.gender = next;
+    if (view.initialized) updateGenderUi();
+    if (changed) {
+      scene?.setGender(next);
+      if (notify) view.onGenderChange?.(next);
+    }
   },
 
   setResult(result) {

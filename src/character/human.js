@@ -13,6 +13,43 @@ const PUPIL = 0x151110;
 const LIP = 0xa26b64;
 const METAL = 0xb9c4c5;
 
+const VARIANTS = Object.freeze({
+  male: Object.freeze({
+    key: 'male',
+    shoulderX: 0.198,
+    hipX: 0.095,
+    shoeX: 0.1,
+    torsoScale: [1.17, 1, 0.68],
+    pelvisScale: [1.2, 1, 0.72],
+    hemScale: [1.14, 1, 0.7],
+    legScale: [1.03, 1, 0.9],
+    armVolume: 1,
+    headScale: [0.9, 1.08, 0.94],
+    browRadius: 0.0037,
+    browLength: 0.032,
+    lipThickness: 1,
+    hairStyle: 'short',
+  }),
+  female: Object.freeze({
+    key: 'female',
+    shoulderX: 0.181,
+    hipX: 0.103,
+    shoeX: 0.107,
+    torsoScale: [1.11, 1, 0.66],
+    pelvisScale: [1.27, 1, 0.76],
+    hemScale: [1.18, 1, 0.72],
+    legScale: [1.01, 1, 0.88],
+    armVolume: 0.94,
+    headScale: [0.88, 1.06, 0.93],
+    browRadius: 0.0032,
+    browLength: 0.029,
+    lipThickness: 1.16,
+    hairStyle: 'bun',
+  }),
+});
+
+const SHAPE_SMOOTHING = 3.2;
+
 const REST_POSE = Object.freeze({
   shoulderL: { x: 0.03, z: -0.09 },
   elbowL: { x: 0.11, z: 0.03 },
@@ -116,11 +153,26 @@ function dampVec(current, target, lambda, delta) {
   current.z = damp(current.z, target.z, lambda, delta);
 }
 
-export function createProceduralHuman() {
+export function createProceduralHuman({ gender = 'male', initialShape = 0 } = {}) {
+  const variant = VARIANTS[gender === 'female' ? 'female' : 'male'];
   const root = new THREE.Group();
-  root.name = 'WellnessAssistant';
+  root.name = `WellnessAssistant-${variant.key}`;
+  root.userData.gender = variant.key;
   const figure = new THREE.Group();
   root.add(figure);
+
+  const shapeRefs = {
+    torso: null,
+    hem: null,
+    waist: null,
+    pelvis: null,
+    frontDetails: null,
+    legs: [],
+    shoes: [],
+    arms: [],
+  };
+  let shapeCurrent = Math.min(1, Math.max(-1, Number(initialShape) || 0));
+  let shapeTarget = shapeCurrent;
 
   const geometries = new Set();
   const materials = new Set();
@@ -240,13 +292,70 @@ export function createProceduralHuman() {
     );
   }
 
+  function smoothRange(start, end, value) {
+    const t = Math.min(1, Math.max(0, (value - start) / (end - start)));
+    return t * t * (3 - 2 * t);
+  }
+
+  /**
+   * Adds real morph targets to the procedural tunic. The production GLB can
+   * use equivalent Blender shape keys (BodyLean / BodyVolume); the controls are
+   * the same morphTargetInfluences contract.
+   */
+  function addTorsoMorphTargets(torsoMesh) {
+    const geometry = torsoMesh.geometry;
+    geometry.computeBoundingBox();
+    const bounds = geometry.boundingBox;
+    const positions = geometry.attributes.position;
+    const base = positions.array;
+    const leanDeltas = new Float32Array(base.length);
+    const volumeDeltas = new Float32Array(base.length);
+    const minY = bounds.min.y;
+    const height = Math.max(0.0001, bounds.max.y - minY);
+
+    for (let index = 0; index < base.length; index += 3) {
+      const x = base[index];
+      const z = base[index + 2];
+      const normalisedY = (base[index + 1] - minY) / height;
+      const abdomen = smoothRange(0.02, 0.24, normalisedY)
+        * (1 - smoothRange(0.42, 0.68, normalisedY));
+      const chest = smoothRange(0.55, 0.94, normalisedY);
+
+      leanDeltas[index] = -x * (0.2 * abdomen + 0.055 * chest);
+      leanDeltas[index + 1] = -base[index + 1] * 0.006 * abdomen;
+      leanDeltas[index + 2] = -z * (0.17 * abdomen + 0.03 * chest);
+
+      volumeDeltas[index] = x * (0.22 * abdomen + 0.075 * chest);
+      volumeDeltas[index + 1] = 0;
+      volumeDeltas[index + 2] = z * (0.5 * abdomen + 0.04 * chest)
+        + 0.04 * abdomen;
+    }
+
+    const leanAttribute = new THREE.BufferAttribute(leanDeltas, 3);
+    leanAttribute.name = 'BodyLean';
+    const volumeAttribute = new THREE.BufferAttribute(volumeDeltas, 3);
+    volumeAttribute.name = 'BodyVolume';
+    geometry.morphTargetsRelative = true;
+    geometry.morphAttributes.position = [leanAttribute, volumeAttribute];
+
+    torsoMesh.morphTargetDictionary = { BodyLean: 0, BodyVolume: 1 };
+    torsoMesh.morphTargetInfluences = [0, 0];
+  }
+
   // Legs and feet -----------------------------------------------------------
   const legMaterial = trousers;
   for (const side of [-1, 1]) {
     const leg = new THREE.Group();
-    leg.position.set(side * 0.095, 0.92, 0);
+    leg.position.set(side * variant.hipX, 0.92, 0);
     leg.rotation.z = side * -0.014;
     figure.add(leg);
+    shapeRefs.legs.push({
+      group: leg,
+      side,
+      baseX: side * variant.hipX,
+      baseScaleX: 1,
+      baseScaleZ: 1,
+    });
 
     // One continuous, gently tapered trouser leg avoids the doll-like joint
     // gaps that segmented primitive legs create.
@@ -261,7 +370,7 @@ export function createProceduralHuman() {
       new THREE.Vector2(0.001, 0),
     ];
     mesh(new THREE.LatheGeometry(profile, 22), legMaterial, leg, {
-      scale: [1.03, 1, 0.9],
+      scale: [...variant.legScale],
     });
 
     // Soft sock bridge from trouser hem to shoe.
@@ -272,9 +381,14 @@ export function createProceduralHuman() {
     });
 
     const shoeGroup = new THREE.Group();
-    shoeGroup.position.set(side * 0.1, 0.052, 0.04);
+    shoeGroup.position.set(side * variant.shoeX, 0.052, 0.04);
     shoeGroup.rotation.y = side * 0.025;
     figure.add(shoeGroup);
+    shapeRefs.shoes.push({
+      group: shoeGroup,
+      side,
+      baseX: side * variant.shoeX,
+    });
     mesh(new THREE.BoxGeometry(0.135, 0.028, 0.245), sole, shoeGroup, {
       position: [0, -0.021, 0.018],
       castShadow: true,
@@ -300,9 +414,10 @@ export function createProceduralHuman() {
   // Pelvis and torso -------------------------------------------------------
   const pelvis = capsule(0.14, 0.08, trousers, figure, {
     position: [0, 0.94, 0],
-    scale: [1.2, 1, 0.72],
+    scale: [...variant.pelvisScale],
   });
   pelvis.receiveShadow = true;
+  shapeRefs.pelvis = { mesh: pelvis, baseScale: [...variant.pelvisScale] };
 
   const spine = new THREE.Group();
   spine.position.set(0, 0.96, 0);
@@ -310,20 +425,32 @@ export function createProceduralHuman() {
 
   const torso = capsule(0.165, 0.26, scrub, spine, {
     position: [0, 0.23, 0],
-    scale: [1.17, 1, 0.68],
+    scale: [...variant.torsoScale],
   });
   torso.name = 'torso';
+  addTorsoMorphTargets(torso);
+  shapeRefs.torso = torso;
 
   // Tunic hem and a subtle waist line.
-  cylinder(0.19, 0.174, 0.1, scrub, spine, {
+  const hem = cylinder(0.19, 0.174, 0.1, scrub, spine, {
     position: [0, 0.025, 0],
-    scale: [1.14, 1, 0.7],
+    scale: [...variant.hemScale],
   });
-  cylinder(0.169, 0.171, 0.018, scrubDark, spine, {
+  shapeRefs.hem = { mesh: hem, baseScale: [...variant.hemScale] };
+  const waist = cylinder(0.169, 0.171, 0.018, scrubDark, spine, {
     position: [0, 0.225, 0],
-    scale: [1.16, 1, 0.7],
+    scale: [variant.torsoScale[0] * 0.99, 1, variant.torsoScale[2] * 1.03],
     castShadow: false,
   });
+  shapeRefs.waist = {
+    mesh: waist,
+    baseScale: [variant.torsoScale[0] * 0.99, 1, variant.torsoScale[2] * 1.03],
+  };
+
+  const frontDetails = new THREE.Group();
+  frontDetails.name = 'FrontDetails';
+  spine.add(frontDetails);
+  shapeRefs.frontDetails = frontDetails;
 
   // White V-neck undershirt.
   const vShape = new THREE.Shape();
@@ -331,42 +458,42 @@ export function createProceduralHuman() {
   vShape.lineTo(0.038, 0.022);
   vShape.lineTo(0, -0.062);
   vShape.closePath();
-  mesh(new THREE.ShapeGeometry(vShape), shirt, spine, {
+  mesh(new THREE.ShapeGeometry(vShape), shirt, frontDetails, {
     position: [0, 0.43, 0.1],
     castShadow: false,
   });
-  mesh(new THREE.BoxGeometry(0.014, 0.095, 0.01), scrubDark, spine, {
+  mesh(new THREE.BoxGeometry(0.014, 0.095, 0.01), scrubDark, frontDetails, {
     position: [-0.03, 0.39, 0.107],
     rotation: [0, 0, -0.38],
     castShadow: false,
   });
-  mesh(new THREE.BoxGeometry(0.014, 0.095, 0.01), scrubDark, spine, {
+  mesh(new THREE.BoxGeometry(0.014, 0.095, 0.01), scrubDark, frontDetails, {
     position: [0.03, 0.39, 0.107],
     rotation: [0, 0, 0.38],
     castShadow: false,
   });
 
   // Badge and small pocket seam.
-  mesh(new THREE.BoxGeometry(0.052, 0.066, 0.009), shirt, spine, {
+  mesh(new THREE.BoxGeometry(0.052, 0.066, 0.009), shirt, frontDetails, {
     position: [-0.082, 0.315, 0.103],
     rotation: [0, -0.06, -0.03],
     castShadow: false,
   });
-  mesh(new THREE.BoxGeometry(0.052, 0.017, 0.0025), badgeTeal, spine, {
+  mesh(new THREE.BoxGeometry(0.052, 0.017, 0.0025), badgeTeal, frontDetails, {
     position: [-0.082, 0.337, 0.109],
     rotation: [0, -0.06, -0.03],
     castShadow: false,
   });
-  mesh(new THREE.BoxGeometry(0.034, 0.006, 0.0025), scrubDark, spine, {
+  mesh(new THREE.BoxGeometry(0.034, 0.006, 0.0025), scrubDark, frontDetails, {
     position: [0.09, 0.19, 0.1],
     rotation: [0, 0.08, 0.02],
     castShadow: false,
   });
-  mesh(new THREE.BoxGeometry(0.033, 0.0035, 0.002), badgeLine, spine, {
+  mesh(new THREE.BoxGeometry(0.033, 0.0035, 0.002), badgeLine, frontDetails, {
     position: [-0.077, 0.302, 0.11],
     castShadow: false,
   });
-  mesh(new THREE.BoxGeometry(0.024, 0.0035, 0.002), badgeLine, spine, {
+  mesh(new THREE.BoxGeometry(0.024, 0.0035, 0.002), badgeLine, frontDetails, {
     position: [-0.081, 0.293, 0.11],
     castShadow: false,
   });
@@ -383,7 +510,7 @@ export function createProceduralHuman() {
     new THREE.Vector3(-0.025, 0.3, 0.12),
     new THREE.Vector3(0.04, 0.29, 0.135),
   ]);
-  mesh(new THREE.TubeGeometry(scopeCurveLeft, 20, 0.0055, 6, false), scope, spine, {
+  mesh(new THREE.TubeGeometry(scopeCurveLeft, 20, 0.0055, 6, false), scope, frontDetails, {
     castShadow: false,
   });
   const scopeCurveRight = new THREE.CatmullRomCurve3([
@@ -392,10 +519,10 @@ export function createProceduralHuman() {
     new THREE.Vector3(0.047, 0.32, 0.12),
     new THREE.Vector3(0.044, 0.292, 0.135),
   ]);
-  mesh(new THREE.TubeGeometry(scopeCurveRight, 18, 0.005, 6, false), scope, spine, {
+  mesh(new THREE.TubeGeometry(scopeCurveRight, 18, 0.005, 6, false), scope, frontDetails, {
     castShadow: false,
   });
-  cylinder(0.017, 0.017, 0.01, metal, spine, {
+  cylinder(0.017, 0.017, 0.01, metal, frontDetails, {
     position: [0.044, 0.287, 0.142],
     rotation: [Math.PI / 2, 0, 0],
     castShadow: false,
@@ -413,7 +540,7 @@ export function createProceduralHuman() {
 
   const headMesh = sphere(0.13, skin, head, {
     position: [0, 0.13, 0],
-    scale: [0.9, 1.08, 0.94],
+    scale: [...variant.headScale],
     segments: 40,
     rings: 28,
   });
@@ -422,7 +549,7 @@ export function createProceduralHuman() {
   // Ears.
   for (const side of [-1, 1]) {
     sphere(0.028, skin, head, {
-      position: [side * 0.116, 0.126, -0.002],
+      position: [side * 0.13 * variant.headScale[0], 0.126, -0.002],
       scale: [0.55, 1, 0.76],
       segments: 18,
       rings: 14,
@@ -500,7 +627,7 @@ export function createProceduralHuman() {
     brow.rotation.z = side * 0.08;
     head.add(brow);
     brows.push(brow);
-    const browMesh = capsule(0.0037, 0.032, hair, brow, {
+    const browMesh = capsule(variant.browRadius, variant.browLength, hair, brow, {
       rotation: [0, 0, Math.PI / 2],
       scale: [1, 1, 0.7],
       castShadow: false,
@@ -530,7 +657,7 @@ export function createProceduralHuman() {
       new THREE.Vector3(0.019, -smile * 0.001, 0.0025),
       new THREE.Vector3(0.039, smile * 0.008, 0),
     ]);
-    mouthGeometry = new THREE.TubeGeometry(curve, 18, 0.0032, 6, false);
+    mouthGeometry = new THREE.TubeGeometry(curve, 18, 0.0032 * variant.lipThickness, 6, false);
     geometries.add(mouthGeometry);
     const object = new THREE.Mesh(mouthGeometry, lip);
     object.castShadow = false;
@@ -557,36 +684,91 @@ export function createProceduralHuman() {
     rings: 22,
     castShadow: true,
   });
-  sphere(0.1, hair, head, {
-    position: [0.01, 0.245, 0.065],
-    scale: [1.08, 0.35, 0.62],
-    rotation: [0.18, -0.15, 0.12],
-    segments: 24,
-    rings: 16,
-    castShadow: true,
-  });
-  sphere(0.056, hair, head, {
-    position: [-0.073, 0.218, 0.077],
-    scale: [1.1, 0.36, 0.58],
-    rotation: [0.2, 0.3, -0.35],
-    segments: 20,
-    rings: 14,
-    castShadow: true,
-  });
-  for (const side of [-1, 1]) {
-    capsule(0.018, 0.032, hair, head, {
-      position: [side * 0.113, 0.178, -0.01],
-      rotation: [0.1, 0, side * 0.12],
-      scale: [1, 1, 0.55],
+  if (variant.hairStyle === 'bun') {
+    sphere(0.108, hair, head, {
+      position: [0.018, 0.238, 0.068],
+      scale: [1.06, 0.38, 0.63],
+      rotation: [0.18, -0.3, 0.18],
+      segments: 24,
+      rings: 16,
+      castShadow: true,
+    });
+    sphere(0.058, hair, head, {
+      position: [-0.079, 0.205, 0.073],
+      scale: [1.12, 0.35, 0.6],
+      rotation: [0.2, 0.35, -0.45],
+      segments: 20,
+      rings: 14,
+      castShadow: true,
+    });
+  } else {
+    sphere(0.1, hair, head, {
+      position: [0.01, 0.245, 0.065],
+      scale: [1.08, 0.35, 0.62],
+      rotation: [0.18, -0.15, 0.12],
+      segments: 24,
+      rings: 16,
+      castShadow: true,
+    });
+    sphere(0.056, hair, head, {
+      position: [-0.073, 0.218, 0.077],
+      scale: [1.1, 0.36, 0.58],
+      rotation: [0.2, 0.3, -0.35],
+      segments: 20,
+      rings: 14,
+      castShadow: true,
+    });
+  }
+  if (variant.hairStyle === 'bun') {
+    sphere(0.064, hair, head, {
+      position: [0, 0.145, -0.158],
+      scale: [0.9, 1, 0.86],
+      segments: 24,
+      rings: 18,
+      castShadow: true,
+    });
+    mesh(new THREE.TorusGeometry(0.031, 0.006, 6, 22), scrubDark, head, {
+      position: [0, 0.145, -0.108],
+      rotation: [Math.PI / 2, 0, 0],
       castShadow: false,
     });
+    for (const side of [-1, 1]) {
+      capsule(0.017, 0.1, hair, head, {
+        position: [side * 0.102, 0.09, 0.01],
+        rotation: [0.04, 0, side * 0.12],
+        scale: [1, 1, 0.7],
+        castShadow: false,
+      });
+      capsule(0.015, 0.13, hair, head, {
+        position: [side * 0.108, 0.02, -0.035],
+        rotation: [0.03, 0, side * 0.06],
+        scale: [1, 1, 0.55],
+        castShadow: false,
+      });
+    }
+  } else {
+    for (const side of [-1, 1]) {
+      capsule(0.018, 0.032, hair, head, {
+        position: [side * 0.113, 0.178, -0.01],
+        rotation: [0.1, 0, side * 0.12],
+        scale: [1, 1, 0.55],
+        castShadow: false,
+      });
+    }
   }
 
   // Arms -------------------------------------------------------------------
   function buildArm(side) {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.198, 0.435, 0);
+    shoulder.position.set(side * variant.shoulderX, 0.435, 0);
+    shoulder.scale.set(variant.armVolume, 1, variant.armVolume);
     spine.add(shoulder);
+    shapeRefs.arms.push({
+      group: shoulder,
+      side,
+      baseX: side * variant.shoulderX,
+      baseScale: variant.armVolume,
+    });
 
     // A softly tailored short sleeve instead of a separate ball joint.
     sphere(0.064, scrub, shoulder, {
@@ -673,6 +855,51 @@ export function createProceduralHuman() {
   };
 
   function applyPoseTargets(delta) {
+    shapeCurrent = damp(shapeCurrent, shapeTarget, SHAPE_SMOOTHING, delta);
+    const volume = Math.max(0, shapeCurrent);
+    const lean = Math.max(0, -shapeCurrent);
+
+    if (shapeRefs.torso) {
+      shapeRefs.torso.morphTargetInfluences[0] = lean;
+      shapeRefs.torso.morphTargetInfluences[1] = volume;
+    }
+
+    if (shapeRefs.frontDetails) {
+      shapeRefs.frontDetails.position.z = volume * 0.028 - lean * 0.006;
+    }
+
+    const widthFactor = 1 + 0.12 * volume - 0.055 * lean;
+    const depthFactor = 1 + 0.22 * volume - 0.08 * lean;
+    if (shapeRefs.hem) {
+      shapeRefs.hem.mesh.scale.x = shapeRefs.hem.baseScale[0] * widthFactor;
+      shapeRefs.hem.mesh.scale.z = shapeRefs.hem.baseScale[2] * depthFactor;
+    }
+    if (shapeRefs.waist) {
+      shapeRefs.waist.mesh.scale.x = shapeRefs.waist.baseScale[0] * widthFactor;
+      shapeRefs.waist.mesh.scale.z = shapeRefs.waist.baseScale[2] * depthFactor;
+    }
+    if (shapeRefs.pelvis) {
+      shapeRefs.pelvis.mesh.scale.x = shapeRefs.pelvis.baseScale[0] * widthFactor;
+      shapeRefs.pelvis.mesh.scale.z = shapeRefs.pelvis.baseScale[2] * depthFactor;
+    }
+
+    for (const arm of shapeRefs.arms) {
+      arm.group.position.x = arm.baseX * (1 + 0.05 * volume - 0.02 * lean);
+      const armScale = arm.baseScale * (1 + 0.1 * volume - 0.04 * lean);
+      arm.group.scale.x = armScale;
+      arm.group.scale.z = armScale;
+    }
+
+    for (const leg of shapeRefs.legs) {
+      leg.group.position.x = leg.baseX * (1 + 0.07 * volume - 0.025 * lean);
+      leg.group.scale.x = leg.baseScaleX * (1 + 0.09 * volume - 0.045 * lean);
+      leg.group.scale.z = leg.baseScaleZ * (1 + 0.09 * volume - 0.045 * lean);
+    }
+
+    for (const shoe of shapeRefs.shoes) {
+      shoe.group.position.x = shoe.baseX * (1 + 0.07 * volume - 0.025 * lean);
+    }
+
     const gesture = GESTURE_POSES[currentState.gesture] ?? REST_POSE;
     const expression = EXPRESSION_TARGETS[currentState.expression] ?? EXPRESSION_TARGETS.warm;
     const armDrift = reducedMotion ? 0 : Math.sin(elapsed * 1.2) * 0.01;
@@ -763,6 +990,15 @@ export function createProceduralHuman() {
     setReducedMotion(value) {
       reducedMotion = Boolean(value);
       if (reducedMotion) blinkStart = -1;
+    },
+    setBodyShape(level) {
+      shapeTarget = Math.min(1, Math.max(-1, Number(level) || 0));
+    },
+    getBodyShape() {
+      return shapeCurrent;
+    },
+    getGender() {
+      return variant.key;
     },
     update(delta) {
       elapsed += Math.min(delta, 0.05);

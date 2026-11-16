@@ -50,6 +50,7 @@ const state = {
   theme: 'light',
   themeExplicit: false,
   unit: 'metric',
+  gender: 'male',
   age: null,
   consent: false,
   history: [],
@@ -145,6 +146,7 @@ state.lang = prefs.language ?? detectLanguage();
 state.themeExplicit = Boolean(prefs.theme);
 state.theme = prefs.theme ?? (systemThemeQuery.matches ? 'dark' : 'light');
 state.unit = prefs.unit === 'imperial' ? 'imperial' : 'metric';
+state.gender = prefs.gender === 'female' ? 'female' : 'male';
 state.age = prefs.age;
 state.consent = prefs.historyConsent === true;
 state.history = prefs.history;
@@ -231,6 +233,7 @@ function persistPreferences(showError = false) {
     language: state.lang,
     theme: state.themeExplicit ? state.theme : null,
     unit: state.unit,
+    gender: state.gender,
     age: state.age,
     historyConsent: state.consent,
     history: state.history,
@@ -989,6 +992,7 @@ function handleSettingsSubmit(event) {
 function resetAfterDataClear() {
   el.form.reset();
   state.lang = detectLanguage();
+  state.gender = 'male';
   state.themeExplicit = false;
   state.theme = systemThemeQuery.matches ? 'dark' : 'light';
   state.unit = 'metric';
@@ -1006,6 +1010,7 @@ function resetAfterDataClear() {
   hideAllFieldErrors();
   applyTheme(state.theme);
   applyLanguage(state.lang, { remember: false });
+  assistant.setGender('male', { notify: false });
   clearResultView();
   syncUnitUi();
   renderHistory();
@@ -1287,7 +1292,15 @@ function bindEvents() {
    -------------------------------------------------------------------------- */
 
 function init() {
-  assistant.init({ language: state.lang, theme: state.theme });
+  assistant.init({
+    language: state.lang,
+    theme: state.theme,
+    gender: state.gender,
+    onGenderChange: (gender) => {
+      state.gender = gender;
+      persistPreferences();
+    },
+  });
   applyTheme(state.theme);
   syncUnitUi();
   bindEvents();

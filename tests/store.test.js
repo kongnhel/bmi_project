@@ -52,6 +52,7 @@ test('preferences round-trip through storage', () => {
     language: 'km',
     theme: 'dark',
     unit: 'imperial',
+    gender: 'female',
     age: 28,
     historyConsent: true,
     history,
@@ -62,6 +63,7 @@ test('preferences round-trip through storage', () => {
   assert.equal(loaded.language, 'km');
   assert.equal(loaded.theme, 'dark');
   assert.equal(loaded.unit, 'imperial');
+  assert.equal(loaded.gender, 'female');
   assert.equal(loaded.age, 28);
   assert.equal(loaded.historyConsent, true);
   assert.deepEqual(loaded.history.map((item) => item.id), ['a', 'b']);
@@ -73,6 +75,7 @@ test('malformed storage safely falls back to defaults', () => {
   assert.equal(loaded.language, null);
   assert.equal(loaded.theme, null);
   assert.equal(loaded.unit, 'metric');
+  assert.equal(loaded.gender, 'male');
   assert.equal(loaded.age, null);
   assert.equal(loaded.historyConsent, false);
   assert.deepEqual(loaded.history, []);
@@ -84,6 +87,7 @@ test('invalid and out-of-range preferences are sanitized on save and load', () =
     language: 'fr',
     theme: 'blue',
     unit: 'stone',
+    gender: 'other',
     age: 28.5,
     historyConsent: 'yes',
     history: 'nope',
@@ -93,6 +97,7 @@ test('invalid and out-of-range preferences are sanitized on save and load', () =
   assert.equal(loaded.language, null);
   assert.equal(loaded.theme, null);
   assert.equal(loaded.unit, 'metric');
+  assert.equal(loaded.gender, 'male');
   assert.equal(loaded.age, null);
   assert.equal(loaded.historyConsent, false);
   assert.deepEqual(loaded.history, []);

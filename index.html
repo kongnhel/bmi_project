@@ -486,6 +486,12 @@
                                 <span class="live-dot" aria-hidden="true"></span>
                                 <span id="assistantEngineBadge" data-i18n="assistant.badgeLoading">Preparing 3D</span>
                             </span>
+                            <span class="assistant-shape-badge" id="assistantShapeBadge">
+                                <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
+                                <span data-i18n="assistant.illustrative">Illustrative</span>
+                                <span aria-hidden="true">&middot;</span>
+                                <span id="assistantShapeLabel" data-i18n="assistant.shape.average">Average</span>
+                            </span>
                         </div>
 
                         <div class="assistant-viewport" id="assistantViewport" aria-describedby="assistantSceneDescription">
@@ -558,6 +564,26 @@
                             <span class="assistant-state-pill" id="assistantStatePill" data-i18n="assistant.stateIdle">Ready when you are</span>
                         </div>
 
+                        <div class="assistant-gender is-loading" id="assistantGender">
+                            <p class="assistant-gender-label" id="assistantGenderLabel" data-i18n="assistant.genderSelect">Select your character</p>
+                            <div class="assistant-gender-options" role="group" aria-labelledby="assistantGenderLabel">
+                                <button class="gender-card" type="button" data-gender="male" aria-pressed="false">
+                                    <span class="gender-preview" aria-hidden="true">
+                                        <canvas id="assistantPreviewMale" width="360" height="200"></canvas>
+                                    </span>
+                                    <span class="gender-name" data-i18n="assistant.male">Male</span>
+                                    <span class="gender-check" aria-hidden="true"><svg class="icon"><use href="#icon-check"></use></svg></span>
+                                </button>
+                                <button class="gender-card" type="button" data-gender="female" aria-pressed="false">
+                                    <span class="gender-preview" aria-hidden="true">
+                                        <canvas id="assistantPreviewFemale" width="360" height="200"></canvas>
+                                    </span>
+                                    <span class="gender-name" data-i18n="assistant.female">Female</span>
+                                    <span class="gender-check" aria-hidden="true"><svg class="icon"><use href="#icon-check"></use></svg></span>
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="assistant-bubble" role="status" aria-live="polite" aria-atomic="true">
                             <p id="assistantMessage" data-i18n="assistant.message.idle">Hi, I’m Avery. Enter your weight and height above, and I’ll help you make sense of the result with a little care and no judgment.</p>
                         </div>
@@ -577,6 +603,10 @@
                         <p class="assistant-disclaimer" data-i18n="assistant.disclaimer">Educational support only — not a diagnosis. BMI does not define your health or your worth.</p>
                     </div>
                 </div>
+                <p class="assistant-visual-disclaimer">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
+                    <span data-i18n="assistant.illustrativeNote">Illustrative body visualization only. BMI cannot determine your actual body shape, fat distribution, muscle mass, or appearance.</span>
+                </p>
                 <p class="sr-only" id="assistantStatus" aria-live="polite" aria-atomic="true"></p>
             </div>
         </section>

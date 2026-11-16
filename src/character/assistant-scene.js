@@ -3,6 +3,7 @@ import { createProceduralHuman } from './human.js';
 import { MODEL_CONFIG } from './config.js';
 import { loadConfiguredModel } from './model-loader.js';
 import { getCharacterState } from './state.js';
+import { getBodyMorphWeights, getBodyShapeLevel } from './body-shape.js';
 
 const CAMERA_LIMITS = Object.freeze({
   yaw: [-0.8, 0.8],
@@ -26,7 +27,7 @@ function damp(current, target, lambda, delta) {
 }
 
 export class AssistantScene {
-  constructor(canvas, { container, onError = () => {}, onModelInfo = () => {} } = {}) {
+  constructor(canvas, { container, onError = () => {}, onModelInfo = () => {}, gender = 'male' } = {}) {
     if (!canvas || !container) throw new Error('The 3D assistant requires a canvas and a container.');
     this.canvas = canvas;
     this.container = container;
@@ -38,6 +39,8 @@ export class AssistantScene {
     this.theme = 'light';
     this.reducedMotion = false;
     this.currentStateKey = 'idle';
+    this.currentGender = gender === 'female' ? 'female' : 'male';
+    this.currentShapeLevel = 0;
     this.modelMixer = null;
     this.modelActions = new Map();
     this.modelActiveAction = null;
@@ -83,8 +86,7 @@ export class AssistantScene {
 
     this.buildStage();
     this.buildLights();
-    this.human = createProceduralHuman();
-    this.root.add(this.human.group);
+    this.human = this.createHuman();
 
     this.bindInput();
     this.observeSize();
@@ -137,6 +139,17 @@ export class AssistantScene {
     this.environmentRenderTarget = renderTarget;
     this.environmentTexture = renderTarget.texture;
     return this.environmentTexture;
+  }
+
+  createHuman() {
+    const human = createProceduralHuman({
+      gender: this.currentGender,
+      initialShape: this.currentShapeLevel,
+    });
+    human.setState(this.currentStateKey);
+    human.setReducedMotion(this.reducedMotion);
+    this.root.add(human.group);
+    return human;
   }
 
   buildStage() {
@@ -342,11 +355,61 @@ export class AssistantScene {
 
   setCharacterState(stateKey) {
     this.currentStateKey = getCharacterState(stateKey).key;
+    this.currentShapeLevel = getBodyShapeLevel(this.currentStateKey);
+    this.human?.setBodyShape(this.currentShapeLevel);
     this.human?.setState(this.currentStateKey);
     if (this.modelMixer) {
       this.applyModelAnimation(this.currentStateKey);
       this.applyModelExpression(this.currentStateKey);
     }
+  }
+
+  setGender(gender) {
+    const next = gender === 'female' ? 'female' : 'male';
+    if (next === this.currentGender) return;
+    this.currentGender = next;
+
+    if (this.modelMixer || this.model) {
+      this.modelMixer?.stopAllAction();
+      this.modelMixer = null;
+      this.modelActiveAction = null;
+      this.modelActions.clear();
+      if (this.model) {
+        this.root.remove(this.model);
+        this.disposeObject(this.model);
+        this.model = null;
+      }
+      this.morphEntries.clear();
+      this.morphCurrent.clear();
+      this.morphTargets.clear();
+    }
+
+    if (this.human) {
+      this.root.remove(this.human.group);
+      this.human.dispose();
+      this.human = null;
+    }
+    this.human = this.createHuman();
+    this.setCharacterState(this.currentStateKey);
+    this.render();
+  }
+
+  getGender() {
+    return this.currentGender;
+  }
+
+  disposeObject(object) {
+    object.traverse((child) => {
+      child.geometry?.dispose?.();
+      const materials = Array.isArray(child.material) ? child.material : [child.material];
+      for (const material of materials) {
+        if (!material) continue;
+        for (const value of Object.values(material)) {
+          if (value?.isTexture) value.dispose();
+        }
+        material.dispose?.();
+      }
+    });
   }
 
   setActive(active) {
@@ -505,6 +568,14 @@ export class AssistantScene {
     for (const [name, value] of Object.entries(weights)) {
       if (this.morphEntries.has(name)) this.morphTargets.set(name, value);
     }
+
+    const bodyWeights = getBodyMorphWeights(this.currentShapeLevel);
+    for (const [kind, name] of Object.entries(MODEL_CONFIG.bodyMorphs ?? {})) {
+      if (name && this.morphEntries.has(name)) {
+        this.morphTargets.set(name, bodyWeights[kind] ?? 0);
+      }
+    }
+
     for (const name of this.morphEntries.keys()) {
       if (!this.morphTargets.has(name)) this.morphTargets.set(name, 0);
     }
