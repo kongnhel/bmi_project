@@ -1,0 +1,16 @@
+{
+  "name": "black-box-bmi",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Black Box — a private, bilingual BMI calculator with an interactive 3D wellness guide.",
+  "scripts": {
+    "start": "node scripts/serve.js",
+    "test": "node --test tests/bmi.test.js tests/i18n.test.js tests/store.test.js tests/format.test.js tests/character-state.test.js",
+    "verify": "node scripts/verify.js",
+    "build": "npm test && npm run verify && node scripts/build.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
