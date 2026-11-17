@@ -10,9 +10,9 @@ The original repository was a small static BMI page. This iteration preserves it
 
 The character is rendered with Three.js inside a dynamically imported WebGL scene. It is not a PNG, video, emoji, or pre-rendered animation.
 
-The 3D guide now sits beside the hero heading, with the calculator workspace immediately below. At 1240 px and wider the hero uses two columns. Inside the assistant, tablet and phone widths use a dedicated split-screen experience — the interactive character stage stays on the left at roughly half the assistant width and Avery’s character panel stays on the right; very narrow phones stack the stage near the top. The bundled character is a **procedural articulated Three.js assistant** that stands in for the final production GLB. It has:
+The 3D guide sits beside the hero heading on wide screens, with the calculator workspace immediately below. At 1240 px and wider the hero uses two columns. Tablet and phone layouts stack the interactive character stage above Avery’s compact character panel; phones use a dedicated single-column layout with a short, fully framed 3D stage. The bundled character is a **procedural articulated Three.js assistant** that stands in for the final production GLB. It has:
 
-- A human-proportioned 3D body built from real geometry with male and female variants sharing one rig and animation system.
+- A human-proportioned parametric body built from smooth lofted torso, hip, sleeve, arm and leg surfaces, with male and female variants sharing one rig and animation system.
 - A gender selector with two runtime-rendered 3D portrait previews, instant switching and locally remembered preference.
 - Continuous body shape driven by the actual unrounded BMI through nine normalized controls: `torso_width`, `waist_width`, `abdomen_volume`, `chest_volume`, `upper_arm_volume`, `forearm_volume`, `thigh_volume`, `leg_volume` and `hip_width`.
 - Real torso and clothing morph targets (`BodyLean`, `torso_width`, `waist_width`, `abdomen_volume`, `chest_volume`) plus rig-compatible non-uniform segment scaling for arms, thighs, lower legs and hips.
@@ -22,7 +22,7 @@ The 3D guide now sits beside the hero heading, with the calculator workspace imm
 - A facial rig with eyes, blinking, eyebrows and a dynamically rebuilt mouth curve.
 - A procedural skin, fabric and hair material set with generated micro-textures.
 - Male short hair and a professionally tied female variation with distinct facial and body proportions.
-- Studio lighting, contact shadows, an environment map and an interactive camera.
+- Studio lighting, contact shadows, an environment map and a closer responsive full-body camera with pinch/wheel zoom.
 - Six BMI reactions with distinct expression and gesture targets.
 - Smooth damping between gestures and expressions.
 - Idle breathing, blinking, head movement and a friendly default expression.
@@ -67,11 +67,12 @@ The GLB integration expects named clips (`Idle`, `Caring`, `Welcome`, `Explain`,
 ### Calculator and results
 
 - Live BMI calculation with the standard formula: weight (kg) ÷ height (m)².
+- Primary range sliders for weight (30–180 kg) and height (100–220 cm), with live BMI, result and 3D updates while dragging.
 - Metric (`kg` / `cm`) and imperial (`lb` / `ft` / `in`) units.
-- Unit switching preserves the current measurement.
-- Decimal, comma-decimal and Khmer-digit input.
+- Unit switching preserves the current measurement and reflects the equivalent slider range.
+- Optional exact-value manual entry, retained inside a disclosure for decimal, comma-decimal and Khmer-digit input.
 - Validation for empty, malformed, zero, negative and unrealistic values.
-- Results update while typing; explicit submit and Enter-key support.
+- Results update live while sliding or typing; explicit submit and Enter-key support remain.
 - Unrounded classification with rounded display.
 - Animated gauge, healthy BMI range, healthy weight range and weight delta.
 - Comparison with the most recent saved check-in.
@@ -95,7 +96,7 @@ The GLB integration expects named clips (`Idle`, `Caring`, `Welcome`, `Explain`,
 - Mobile UX tuned for real phones: safe-area insets for the header, toast and edge controls; 44px minimum touch targets for camera controls, toast actions, history deletion and compact buttons; no horizontal overflow from 320px upward.
 - Gender switching preserves the current BMI, camera and character state; the choice is stored locally.
 - Actual unrounded BMI updates the character continuously, including within the same category.
-- Body shape uses damped torso/clothing morph targets plus rig-compatible limb and hip scaling. No uniform whole-character scaling is used.
+- Body shape uses damped torso/clothing morph targets plus rig-compatible limb, hip and stature scaling. BMI never applies a uniform whole-character scale; entered height separately adjusts overall stature.
 - Character state also updates when a result is cleared or becomes invalid.
 - The hero character is linked from the main navigation and the result card.
 - A permanently visible disclaimer states that body visualization is illustrative and cannot determine real body shape, fat distribution, muscle mass or appearance.

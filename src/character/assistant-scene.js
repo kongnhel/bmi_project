@@ -12,14 +12,14 @@ import {
 const CAMERA_LIMITS = Object.freeze({
   yaw: [-0.8, 0.8],
   pitch: [-0.02, 0.24],
-  distance: [3, 5.05],
+  distance: [3.05, 4.9],
 });
 
 const CAMERA_HOME = Object.freeze({
   yaw: 0.12,
   pitch: 0.075,
-  distance: 3.95,
-  targetY: 0.94,
+  distance: 3.6,
+  targetY: 0.93,
 });
 
 const CAMERA_BASE_FOV = 30;
@@ -49,6 +49,8 @@ export class AssistantScene {
     this.currentStateKey = 'idle';
     this.currentGender = gender === 'female' ? 'female' : 'male';
     this.currentBmi = Number.isFinite(bmi) ? bmi : 22;
+    this.currentHeightCm = 170;
+    this.currentWeightKg = null;
     this.currentMorphState = getBodyMorphsForBmi(this.currentBmi);
     this.modelMixer = null;
     this.modelActions = new Map();
@@ -165,6 +167,7 @@ export class AssistantScene {
       gender: this.currentGender,
       initialBmi: this.currentBmi,
       quality: this.quality,
+      initialHeightCm: this.currentHeightCm,
     });
     human.setBodyMorphs(this.currentMorphState);
     human.setState(this.currentStateKey);
@@ -403,6 +406,8 @@ export class AssistantScene {
   updateCharacter({
     gender = this.currentGender,
     bmi = this.currentBmi,
+    heightCm = this.currentHeightCm,
+    weightKg = this.currentWeightKg,
     categoryKey = this.currentStateKey,
     animationState = categoryKey,
   } = {}) {
@@ -410,8 +415,11 @@ export class AssistantScene {
 
     const nextBmi = Number.isFinite(bmi) ? bmi : 22;
     this.currentBmi = nextBmi;
+    this.currentHeightCm = Number.isFinite(heightCm) ? heightCm : 170;
+    this.currentWeightKg = Number.isFinite(weightKg) ? weightKg : null;
     this.currentMorphState = getBodyMorphsForBmi(nextBmi);
     this.human?.setBodyMorphs(this.currentMorphState);
+    this.human?.setAnthropometrics({ heightCm: this.currentHeightCm, weightKg: this.currentWeightKg });
 
     this.currentStateKey = getCharacterState(animationState ?? categoryKey).key;
     this.human?.setState(this.currentStateKey);
@@ -421,6 +429,7 @@ export class AssistantScene {
       this.applyModelExpression(this.currentStateKey);
     }
     this.canvas.dataset.bmi = nextBmi.toFixed(3);
+    this.canvas.dataset.height = this.currentHeightCm.toFixed(1);
     this.render();
   }
 

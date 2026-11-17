@@ -45,6 +45,17 @@ function detectLanguage() {
   return language.startsWith('km') ? 'km' : 'en';
 }
 
+const DEFAULT_MEASUREMENTS = Object.freeze({ weightKg: 65, heightCm: 170 });
+const SLIDER_UPDATE_INTERVAL = 90;
+const WEIGHT_SLIDER_BOUNDS = Object.freeze({
+  metric: Object.freeze({ min: 30, max: 180, step: 1 }),
+  imperial: Object.freeze({ min: 67, max: 396, step: 1 }),
+});
+const HEIGHT_SLIDER_BOUNDS = Object.freeze({
+  metric: Object.freeze({ min: 100, max: 220, step: 1 }),
+  imperial: Object.freeze({ min: 40, max: 86, step: 1 }),
+});
+
 const state = {
   lang: 'en',
   theme: 'light',
@@ -62,6 +73,8 @@ const state = {
   touched: new Set(),
   attemptedSubmit: false,
   liveTimer: null,
+  sliderTimer: null,
+  lastSliderUpdate: 0,
   toastTimer: null,
   toastActionHandler: null,
   pendingConsentAction: null,
@@ -75,6 +88,17 @@ const el = {
   inchesInput: document.getElementById('inchesInput'),
   weightUnit: document.getElementById('weightUnit'),
   weightUnitHint: document.getElementById('weightUnitHint'),
+  weightSlider: document.getElementById('weightSlider'),
+  weightSliderValue: document.getElementById('weightSliderValue'),
+  weightSliderUnit: document.getElementById('weightSliderUnit'),
+  weightSliderMin: document.getElementById('weightSliderMin'),
+  weightSliderMax: document.getElementById('weightSliderMax'),
+  heightSlider: document.getElementById('heightSlider'),
+  heightSliderValue: document.getElementById('heightSliderValue'),
+  heightSliderUnit: document.getElementById('heightSliderUnit'),
+  heightSliderMin: document.getElementById('heightSliderMin'),
+  heightSliderMax: document.getElementById('heightSliderMax'),
+  manualEntry: document.getElementById('manualEntry'),
   metricHeight: document.getElementById('metricHeight'),
   imperialHeight: document.getElementById('imperialHeight'),
   weightError: document.getElementById('weightError'),
@@ -217,6 +241,7 @@ function applyLanguage(language, { remember = true } = {}) {
   assistant.setLanguage(state.lang);
   syncMenuButton();
   syncUnitUi();
+  syncSlidersFromFields();
   refreshFieldErrors();
   if (state.lastResult) {
     renderResultView(state.lastResult, { animate: false, announce: false });
@@ -276,6 +301,205 @@ function formatInputNumber(value) {
   return Object.is(rounded, -0) ? '0' : String(rounded);
 }
 
+function applyDefaultMeasurements() {
+  if (state.unit === 'imperial') {
+    const weightLb = Math.round(kgToLb(DEFAULT_MEASUREMENTS.weightKg));
+    const totalInches = Math.round(DEFAULT_MEASUREMENTS.heightCm / 2.54);
+    const feet = Math.floor(totalInches / 12);
+    const inches = totalInches - feet * 12;
+    el.weightInput.value = String(weightLb);
+    el.heightInput.value = formatInputNumber(ftInToCm(feet, inches));
+    el.feetInput.value = String(feet);
+    el.inchesInput.value = String(inches);
+    return;
+  }
+  el.weightInput.value = String(DEFAULT_MEASUREMENTS.weightKg);
+  el.heightInput.value = String(DEFAULT_MEASUREMENTS.heightCm);
+  el.feetInput.value = '';
+  el.inchesInput.value = '';
+}
+
+function metricValuesFromFields() {
+  if (state.unit === 'metric') {
+    return {
+      weightKg: parseDecimalInput(el.weightInput.value),
+      heightCm: parseDecimalInput(el.heightInput.value),
+    };
+  }
+  const weightLb = parseDecimalInput(el.weightInput.value);
+  const feet = parseDecimalInput(el.feetInput.value);
+  const inches = el.inchesInput.value.trim()
+    ? parseDecimalInput(el.inchesInput.value)
+    : 0;
+  return {
+    weightKg: weightLb !== null ? lbToKg(weightLb) : null,
+    heightCm: feet !== null && inches !== null ? ftInToCm(feet, inches) : null,
+  };
+}
+
+function sliderBounds(kind) {
+  const imperial = state.unit === 'imperial';
+  return kind === 'weight'
+    ? (imperial ? WEIGHT_SLIDER_BOUNDS.imperial : WEIGHT_SLIDER_BOUNDS.metric)
+    : (imperial ? HEIGHT_SLIDER_BOUNDS.imperial : HEIGHT_SLIDER_BOUNDS.metric);
+}
+
+function sliderFor(kind) {
+  return kind === 'weight' ? el.weightSlider : el.heightSlider;
+}
+
+function clampSliderValue(value, bounds) {
+  return Math.round(Math.min(bounds.max, Math.max(bounds.min, value)));
+}
+
+function updateSliderLabels(kind, bounds) {
+  const imperial = state.unit === 'imperial';
+  const minLabel = kind === 'weight' ? el.weightSliderMin : el.heightSliderMin;
+  const maxLabel = kind === 'weight' ? el.weightSliderMax : el.heightSliderMax;
+  if (kind === 'weight') {
+    const unit = imperial ? 'lb' : 'kg';
+    minLabel.textContent = `${bounds.min} ${unit}`;
+    maxLabel.textContent = `${bounds.max} ${unit}`;
+    return;
+  }
+  if (imperial) {
+    minLabel.textContent = formatHeight(bounds.min * 2.54, 'imperial');
+    maxLabel.textContent = formatHeight(bounds.max * 2.54, 'imperial');
+    return;
+  }
+  minLabel.textContent = `${bounds.min} cm`;
+  maxLabel.textContent = `${bounds.max} cm`;
+}
+
+function updateSliderDisplay(kind, value) {
+  const imperial = state.unit === 'imperial';
+  if (kind === 'weight') {
+    const rounded = Math.round(value);
+    el.weightSliderValue.textContent = formatWholeNumber(rounded);
+    el.weightSliderUnit.hidden = false;
+    el.weightSliderUnit.textContent = imperial ? 'lb' : 'kg';
+    el.weightSlider.setAttribute(
+      'aria-valuetext',
+      `${formatWholeNumber(rounded)} ${imperial ? 'lb' : 'kg'}`,
+    );
+    return;
+  }
+
+  if (imperial) {
+    const totalInches = Math.round(value);
+    const feet = Math.floor(totalInches / 12);
+    const inches = totalInches - feet * 12;
+    el.heightSliderValue.textContent = formatHeight(totalInches * 2.54, 'imperial');
+    el.heightSliderUnit.textContent = '';
+    el.heightSliderUnit.hidden = true;
+    el.heightSlider.setAttribute(
+      'aria-valuetext',
+      `${feet} ${t(state.lang, 'calc.feet')} ${formatWholeNumber(inches)} ${t(state.lang, 'calc.inches')}`,
+    );
+    return;
+  }
+
+  const rounded = Math.round(value);
+  el.heightSliderValue.textContent = formatWholeNumber(rounded);
+  el.heightSliderUnit.hidden = false;
+  el.heightSliderUnit.textContent = 'cm';
+  el.heightSlider.setAttribute('aria-valuetext', `${formatWholeNumber(rounded)} cm`);
+}
+
+function updateSliderProgress(kind, value, bounds) {
+  const slider = sliderFor(kind);
+  const percent = ((value - bounds.min) / (bounds.max - bounds.min)) * 100;
+  slider.style.setProperty(
+    '--slider-progress',
+    `${Math.min(100, Math.max(0, percent)).toFixed(2)}%`,
+  );
+}
+
+function syncSlidersFromFields() {
+  const measurements = metricValuesFromFields();
+  const weightBounds = sliderBounds('weight');
+  const heightBounds = sliderBounds('height');
+  const weightValue = clampSliderValue(
+    state.unit === 'imperial'
+      ? kgToLb(measurements.weightKg ?? DEFAULT_MEASUREMENTS.weightKg)
+      : measurements.weightKg ?? DEFAULT_MEASUREMENTS.weightKg,
+    weightBounds,
+  );
+  const heightValue = clampSliderValue(
+    state.unit === 'imperial'
+      ? (measurements.heightCm ?? DEFAULT_MEASUREMENTS.heightCm) / 2.54
+      : measurements.heightCm ?? DEFAULT_MEASUREMENTS.heightCm,
+    heightBounds,
+  );
+
+  el.weightSlider.min = String(weightBounds.min);
+  el.weightSlider.max = String(weightBounds.max);
+  el.weightSlider.step = String(weightBounds.step);
+  el.weightSlider.value = String(weightValue);
+
+  el.heightSlider.min = String(heightBounds.min);
+  el.heightSlider.max = String(heightBounds.max);
+  el.heightSlider.step = String(heightBounds.step);
+  el.heightSlider.value = String(heightValue);
+
+  updateSliderLabels('weight', weightBounds);
+  updateSliderLabels('height', heightBounds);
+  updateSliderDisplay('weight', weightValue);
+  updateSliderDisplay('height', heightValue);
+  updateSliderProgress('weight', weightValue, weightBounds);
+  updateSliderProgress('height', heightValue, heightBounds);
+}
+
+function writeSliderMeasurements(kind, value) {
+  if (kind === 'weight') {
+    el.weightInput.value = formatInputNumber(value);
+    return;
+  }
+  if (state.unit === 'imperial') {
+    const totalInches = Math.round(value);
+    const feet = Math.floor(totalInches / 12);
+    const inches = totalInches - feet * 12;
+    el.feetInput.value = String(feet);
+    el.inchesInput.value = formatInputNumber(inches);
+    el.heightInput.value = formatInputNumber(ftInToCm(feet, inches));
+    return;
+  }
+  el.heightInput.value = formatInputNumber(value);
+}
+
+function handleSliderInput(kind) {
+  const slider = sliderFor(kind);
+  const value = Number(slider.value);
+  if (!Number.isFinite(value)) return;
+  const bounds = sliderBounds(kind);
+  writeSliderMeasurements(kind, value);
+  updateSliderDisplay(kind, value);
+  updateSliderProgress(kind, value, bounds);
+  window.clearTimeout(state.liveTimer);
+  state.liveTimer = null;
+  scheduleSliderLiveUpdate();
+}
+
+function scheduleSliderLiveUpdate() {
+  if (state.sliderTimer) return;
+  const elapsed = performance.now() - state.lastSliderUpdate;
+  const delay = Math.max(0, SLIDER_UPDATE_INTERVAL - elapsed);
+  state.sliderTimer = window.setTimeout(() => {
+    state.sliderTimer = null;
+    state.lastSliderUpdate = performance.now();
+    applyLiveEvaluation({ announce: false });
+  }, delay);
+}
+
+function flushSliderLiveUpdate({ announce = true } = {}) {
+  if (state.sliderTimer) {
+    window.clearTimeout(state.sliderTimer);
+    state.sliderTimer = null;
+  }
+  state.lastSliderUpdate = performance.now();
+  applyLiveEvaluation({ announce });
+}
+
 function switchUnit(nextUnit) {
   if (nextUnit === state.unit) return;
 
@@ -316,6 +540,7 @@ function switchUnit(nextUnit) {
   state.attemptedSubmit = false;
   hideAllFieldErrors();
   syncUnitUi();
+  syncSlidersFromFields();
   persistPreferences();
   scheduleLiveUpdate(0);
 }
@@ -473,6 +698,13 @@ function updateFieldErrors(evaluation) {
     shells: heightShells,
     inputs: heightInputs,
   });
+
+  if (
+    (evaluation.errors.weight && fieldErrorVisible('weight'))
+    || (evaluation.errors.height && fieldErrorVisible('height'))
+  ) {
+    el.manualEntry.open = true;
+  }
 }
 
 function hideAllFieldErrors() {
@@ -491,16 +723,25 @@ function refreshFieldErrors() {
   updateFieldErrors(evaluation);
 }
 
-function scheduleLiveUpdate(delay = 180) {
+function applyLiveEvaluation({ announce = true } = {}) {
+  const evaluation = evaluateForm();
+  updateFieldErrors(evaluation);
+  if (evaluation.ok) {
+    commitResult(evaluation, { animate: true, announce });
+  } else {
+    clearResultView();
+  }
+}
+
+function scheduleLiveUpdate(delay = 180, { announce = true } = {}) {
   window.clearTimeout(state.liveTimer);
+  if (state.sliderTimer) {
+    window.clearTimeout(state.sliderTimer);
+    state.sliderTimer = null;
+  }
   state.liveTimer = window.setTimeout(() => {
-    const evaluation = evaluateForm();
-    updateFieldErrors(evaluation);
-    if (evaluation.ok) {
-      commitResult(evaluation, { animate: true, announce: true });
-    } else {
-      clearResultView();
-    }
+    state.liveTimer = null;
+    applyLiveEvaluation({ announce });
   }, delay);
 }
 
@@ -508,13 +749,13 @@ function signatureFor(evaluation) {
   return `${evaluation.weightKg.toFixed(1)}|${evaluation.heightCm.toFixed(1)}`;
 }
 
-function commitResult(evaluation, { animate = true, announce = false } = {}) {
+function commitResult(evaluation, { animate = true, announce = false, compare = true } = {}) {
   const bmi = calculateBmi(evaluation.weightKg, evaluation.heightCm);
   const signature = signatureFor(evaluation);
   const isNew = signature !== state.lastSignature;
 
   if (isNew) {
-    state.comparisonBase = state.history[0] ?? null;
+    state.comparisonBase = compare ? state.history[0] ?? null : null;
     state.lastSignature = signature;
   }
 
@@ -554,6 +795,7 @@ function clearResultView() {
 }
 
 function focusFirstInvalid(evaluation) {
+  el.manualEntry.open = true;
   if (evaluation.errors.weight) {
     el.weightInput.focus();
     return;
@@ -627,6 +869,8 @@ function renderResultView(result, { animate = false, announce = false } = {}) {
   assistant.setResult({
     categoryKey: result.categoryKey,
     bmi: result.bmi,
+    heightCm: result.heightCm,
+    weightKg: result.weightKg,
     age: state.age,
   });
 
@@ -1008,11 +1252,18 @@ function resetAfterDataClear() {
   state.attemptedSubmit = false;
 
   hideAllFieldErrors();
+  applyDefaultMeasurements();
   applyTheme(state.theme);
   applyLanguage(state.lang, { remember: false });
   assistant.setGender('male', { notify: false });
   clearResultView();
   syncUnitUi();
+  syncSlidersFromFields();
+  el.manualEntry.open = false;
+  const initialEvaluation = evaluateForm();
+  if (initialEvaluation.ok) {
+    commitResult(initialEvaluation, { animate: false, announce: false, compare: false });
+  }
   renderHistory();
   updateSaveButton();
   updateExportButtons();
@@ -1097,6 +1348,9 @@ function bindEvents() {
   el.form.addEventListener('submit', (event) => {
     event.preventDefault();
     window.clearTimeout(state.liveTimer);
+    window.clearTimeout(state.sliderTimer);
+    state.liveTimer = null;
+    state.sliderTimer = null;
     state.attemptedSubmit = true;
     state.touched.add('weight');
     state.touched.add('height');
@@ -1107,6 +1361,7 @@ function bindEvents() {
       focusFirstInvalid(evaluation);
       return;
     }
+    syncSlidersFromFields();
     commitResult(evaluation, { animate: true, announce: true });
   });
 
@@ -1123,9 +1378,16 @@ function bindEvents() {
     const field = inputField(event.target);
     if (!field) return;
     state.touched.add(field);
-    updateFieldErrors(evaluateForm());
+    const evaluation = evaluateForm();
+    updateFieldErrors(evaluation);
+    if (evaluation.ok) syncSlidersFromFields();
     scheduleLiveUpdate(0);
   });
+
+  el.weightSlider.addEventListener('input', () => handleSliderInput('weight'));
+  el.heightSlider.addEventListener('input', () => handleSliderInput('height'));
+  el.weightSlider.addEventListener('change', () => flushSliderLiveUpdate());
+  el.heightSlider.addEventListener('change', () => flushSliderLiveUpdate());
 
   el.unitRadios.forEach((radio) => {
     radio.addEventListener('change', () => {
@@ -1135,8 +1397,9 @@ function bindEvents() {
 
   el.resetButton.addEventListener('click', () => {
     window.clearTimeout(state.liveTimer);
-    el.form.reset();
-    el.weightInput.focus();
+    window.clearTimeout(state.sliderTimer);
+    state.liveTimer = null;
+    state.sliderTimer = null;
     state.touched.clear();
     state.attemptedSubmit = false;
     state.lastSignature = '';
@@ -1144,8 +1407,17 @@ function bindEvents() {
     state.lastSavedId = null;
     state.comparisonBase = null;
     hideAllFieldErrors();
-    clearResultView();
+    applyDefaultMeasurements();
+    syncSlidersFromFields();
+    el.manualEntry.open = false;
     syncUnitUi();
+    const evaluation = evaluateForm();
+    if (evaluation.ok) {
+      commitResult(evaluation, { animate: true, announce: false, compare: false });
+    } else {
+      clearResultView();
+    }
+    el.weightSlider.focus();
     updateSaveButton();
     updateExportButtons();
   });
@@ -1302,10 +1574,17 @@ function init() {
     },
   });
   applyTheme(state.theme);
+  applyDefaultMeasurements();
   syncUnitUi();
   bindEvents();
   applyLanguage(state.lang, { remember: false });
-  clearResultView();
+  syncSlidersFromFields();
+  const initialEvaluation = evaluateForm();
+  if (initialEvaluation.ok) {
+    commitResult(initialEvaluation, { animate: false, announce: false, compare: false });
+  } else {
+    clearResultView();
+  }
   renderHistory();
   updateSaveButton();
   updateExportButtons();

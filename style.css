@@ -1462,6 +1462,257 @@ html[lang="km"] .preview-kicker {
     color: var(--accent);
 }
 
+.slider-field {
+    margin-top: 18px;
+}
+
+.slider-field + .slider-field {
+    margin-top: 20px;
+}
+
+.slider-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 26px;
+}
+
+.slider-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--ink);
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.slider-label .icon {
+    width: 17px;
+    height: 17px;
+    color: var(--accent);
+}
+
+.slider-value {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    min-width: 0;
+    color: var(--ink);
+}
+
+.slider-number {
+    font-size: 1.6rem;
+    font-weight: 650;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+html[lang="km"] .slider-number {
+    letter-spacing: 0;
+    line-height: 1.35;
+}
+
+.slider-unit {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+#weightSlider {
+    --slider-progress: 23.33%;
+}
+
+#heightSlider {
+    --slider-progress: 58.33%;
+}
+
+.measurement-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    outline: none;
+    touch-action: pan-y;
+}
+
+.measurement-slider::-webkit-slider-runnable-track {
+    height: 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: linear-gradient(
+        to right,
+        var(--accent) 0 var(--slider-progress, 50%),
+        var(--surface-3) var(--slider-progress, 50%) 100%
+    );
+}
+
+.measurement-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+    width: 26px;
+    height: 26px;
+    margin-top: -10px;
+    border: 3px solid var(--surface);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 2px 8px rgba(15, 31, 44, 0.24);
+    cursor: grab;
+    transition: box-shadow 0.18s var(--ease), transform 0.18s var(--ease);
+}
+
+.measurement-slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 4px var(--accent-soft), 0 2px 10px rgba(15, 31, 44, 0.26);
+}
+
+.measurement-slider:active::-webkit-slider-thumb {
+    cursor: grabbing;
+    transform: scale(0.96);
+}
+
+.measurement-slider::-moz-range-track {
+    height: 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-3);
+}
+
+.measurement-slider::-moz-range-progress {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--accent);
+}
+
+.measurement-slider::-moz-range-thumb {
+    box-sizing: border-box;
+    width: 26px;
+    height: 26px;
+    border: 3px solid var(--surface);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 2px 8px rgba(15, 31, 44, 0.24);
+    cursor: grab;
+}
+
+.measurement-slider:focus-visible {
+    border-radius: 999px;
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 4px;
+}
+
+.measurement-slider:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--focus-glow);
+}
+
+.measurement-slider:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--focus-glow);
+}
+
+.slider-minmax {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: -5px;
+    color: var(--faint);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+}
+
+.manual-entry {
+    margin-top: 16px;
+    border-top: 1px solid var(--line);
+}
+
+.manual-entry > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+}
+
+.manual-entry > summary::-webkit-details-marker {
+    display: none;
+}
+
+.manual-entry > summary::after {
+    content: "";
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.2s var(--ease);
+}
+
+.manual-entry[open] > summary::after {
+    transform: rotate(-135deg);
+}
+
+.manual-entry[open] > summary {
+    color: var(--ink);
+}
+
+.manual-fields {
+    display: grid;
+    gap: 16px;
+    padding: 4px 0 18px;
+}
+
+.manual-fields .field {
+    margin-bottom: 0;
+}
+
+.form-actions--live {
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.form-actions--live .btn {
+    flex: 0 0 auto;
+    min-width: 82px;
+}
+
+.live-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.live-note .live-dot {
+    flex: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    background: var(--accent);
+}
+
 /* --------------------------------------------------------------------------
    Result card
    -------------------------------------------------------------------------- */
@@ -5555,6 +5806,67 @@ body {
 
     .footer-reference {
         margin-top: 10px;
+    }
+}
+
+@media (max-width: 560px) {
+    .slider-field {
+        margin-top: 14px;
+    }
+
+    .slider-field + .slider-field {
+        margin-top: 16px;
+    }
+
+    .slider-label {
+        font-size: 12.5px;
+        gap: 6px;
+    }
+
+    .slider-label .icon {
+        width: 15px;
+        height: 15px;
+    }
+
+    .slider-number {
+        font-size: 1.45rem;
+    }
+
+    .slider-minmax {
+        font-size: 9.5px;
+    }
+
+    .measurement-slider::-webkit-slider-thumb {
+        width: 28px;
+        height: 28px;
+        margin-top: -11px;
+    }
+
+    .measurement-slider::-moz-range-thumb {
+        width: 28px;
+        height: 28px;
+    }
+
+    .manual-entry {
+        margin-top: 12px;
+    }
+
+    .manual-entry > summary {
+        font-size: 11.5px;
+    }
+
+    .form-actions--live {
+        margin-top: 14px;
+    }
+
+    .form-actions--live .btn {
+        min-width: 74px;
+    }
+
+    .live-note {
+        flex: 1 1 150px;
+        font-size: 10.5px;
+        gap: 6px;
     }
 }
 

@@ -12,6 +12,8 @@ const view = {
   theme: 'light',
   categoryKey: null,
   bmi: null,
+  heightCm: null,
+  weightKg: null,
   age: null,
   gender: 'male',
   onGenderChange: null,
@@ -143,6 +145,8 @@ function updateContent({ speak = false } = {}) {
   scene?.updateCharacter({
     gender: view.gender,
     bmi: Number.isFinite(view.bmi) ? view.bmi : 22,
+    heightCm: Number.isFinite(view.heightCm) ? view.heightCm : null,
+    weightKg: Number.isFinite(view.weightKg) ? view.weightKg : null,
     categoryKey: view.categoryKey,
     animationState: stateKey,
   });
@@ -340,6 +344,8 @@ async function startScene() {
     scene.updateCharacter({
       gender: view.gender,
       bmi: Number.isFinite(view.bmi) ? view.bmi : 22,
+      heightCm: Number.isFinite(view.heightCm) ? view.heightCm : null,
+      weightKg: Number.isFinite(view.weightKg) ? view.weightKg : null,
       categoryKey: view.categoryKey,
       animationState: currentStateKey(),
     });
@@ -411,6 +417,8 @@ export const assistant = {
     const previousState = currentStateKey();
     view.categoryKey = result?.categoryKey ?? null;
     view.bmi = Number.isFinite(result?.bmi) ? result.bmi : null;
+    view.heightCm = Number.isFinite(result?.heightCm) ? result.heightCm : null;
+    view.weightKg = Number.isFinite(result?.weightKg) ? result.weightKg : null;
     view.age = Number.isInteger(result?.age) ? result.age : null;
     const nextState = currentStateKey();
     const categoryChanged = previousState !== nextState;

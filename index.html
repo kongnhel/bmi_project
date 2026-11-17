@@ -163,6 +163,14 @@
             <path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4v-5Z" />
             <path d="m16 9.5 4.5 5M20.5 9.5l-4.5 5" />
         </symbol>
+        <symbol id="icon-scale" viewBox="0 0 24 24">
+            <rect x="3.5" y="4" width="17" height="16" rx="4" />
+            <path d="M8 15a4 4 0 0 1 8 0M12 15l1.8-2.6" />
+        </symbol>
+        <symbol id="icon-ruler" viewBox="0 0 24 24">
+            <rect x="5" y="3" width="14" height="18" rx="2" />
+            <path d="M9 7h3M9 11h6M9 15h4M9 19h6" />
+        </symbol>
     </svg>
 
     <header class="site-header">
@@ -406,58 +414,96 @@
                         </fieldset>
 
                         <form id="bmiForm" novalidate>
-                            <div class="field" id="weightField">
-                                <div class="label-row">
-                                    <label for="weightInput" data-i18n="calc.weight">Weight</label>
-                                    <span class="hint" data-i18n="calc.weightHint">Current weight</span>
+                            <div class="slider-field">
+                                <div class="slider-heading">
+                                    <label class="slider-label" for="weightSlider">
+                                        <svg class="icon" aria-hidden="true"><use href="#icon-scale"></use></svg>
+                                        <span data-i18n="calc.weight">Weight</span>
+                                    </label>
+                                    <div class="slider-value">
+                                        <output class="slider-number" id="weightSliderValue" for="weightSlider">65</output>
+                                        <span class="slider-unit" id="weightSliderUnit">kg</span>
+                                    </div>
                                 </div>
-                                <div class="input-shell">
-                                    <input id="weightInput" name="weight" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="e.g. 70" aria-describedby="weightUnitHint weightError">
-                                    <span class="unit-suffix" id="weightUnit">kg</span>
+                                <input class="measurement-slider" id="weightSlider" name="weightSlider" type="range" min="30" max="180" step="1" value="65" aria-label="Weight" data-i18n-aria-label="calc.weight" aria-valuetext="65 kg">
+                                <div class="slider-minmax" aria-hidden="true">
+                                    <span id="weightSliderMin">30 kg</span>
+                                    <span id="weightSliderMax">180 kg</span>
                                 </div>
-                                <span class="sr-only" id="weightUnitHint">Weight in kilograms</span>
-                                <p class="field-error" id="weightError" role="alert" hidden></p>
                             </div>
 
-                            <div class="field" id="heightField">
-                                <div id="metricHeight">
-                                    <div class="label-row">
-                                        <label for="heightInput" data-i18n="calc.height">Height</label>
-                                        <span class="hint" data-i18n="calc.heightHint">Without shoes</span>
-                                    </div>
-                                    <div class="input-shell">
-                                        <input id="heightInput" name="height" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="e.g. 175" aria-describedby="heightError">
-                                        <span class="unit-suffix">cm</span>
-                                    </div>
-                                </div>
-
-                                <fieldset class="height-group" id="imperialHeight" hidden>
-                                    <legend class="label-row">
+                            <div class="slider-field">
+                                <div class="slider-heading">
+                                    <label class="slider-label" for="heightSlider">
+                                        <svg class="icon" aria-hidden="true"><use href="#icon-ruler"></use></svg>
                                         <span data-i18n="calc.height">Height</span>
-                                        <span class="hint" data-i18n="calc.heightHint">Without shoes</span>
-                                    </legend>
-                                    <div class="split-inputs">
-                                        <div class="input-shell">
-                                            <label class="sr-only" for="feetInput" data-i18n="calc.feetAria">Height in feet</label>
-                                            <input id="feetInput" name="feet" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5" aria-describedby="heightError">
-                                            <span class="unit-suffix" data-i18n="calc.feet">ft</span>
-                                        </div>
-                                        <div class="input-shell">
-                                            <label class="sr-only" for="inchesInput" data-i18n="calc.inchesAria">Height in inches</label>
-                                            <input id="inchesInput" name="inches" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="8" aria-describedby="heightError">
-                                            <span class="unit-suffix" data-i18n="calc.inches">in</span>
-                                        </div>
+                                    </label>
+                                    <div class="slider-value">
+                                        <output class="slider-number" id="heightSliderValue" for="heightSlider">170</output>
+                                        <span class="slider-unit" id="heightSliderUnit">cm</span>
                                     </div>
-                                </fieldset>
-                                <p class="field-error" id="heightError" role="alert" hidden></p>
+                                </div>
+                                <input class="measurement-slider" id="heightSlider" name="heightSlider" type="range" min="100" max="220" step="1" value="170" aria-label="Height" data-i18n-aria-label="calc.height" aria-valuetext="170 cm">
+                                <div class="slider-minmax" aria-hidden="true">
+                                    <span id="heightSliderMin">100 cm</span>
+                                    <span id="heightSliderMax">220 cm</span>
+                                </div>
                             </div>
 
-                            <div class="form-actions">
-                                <button class="btn btn-primary" type="submit">
-                                    <svg class="icon" aria-hidden="true"><use href="#icon-calculator"></use></svg>
-                                    <span data-i18n="calc.calculate">Calculate BMI</span>
-                                </button>
-                                <button class="btn btn-quiet" id="resetButton" type="button" data-i18n="calc.reset">Reset</button>
+                            <details class="manual-entry" id="manualEntry">
+                                <summary><span data-i18n="calc.manualEntry">Enter exact values</span></summary>
+                                <div class="manual-fields">
+                                    <div class="field" id="weightField">
+                                        <div class="label-row">
+                                            <label for="weightInput" data-i18n="calc.weight">Weight</label>
+                                            <span class="hint" data-i18n="calc.weightHint">Current weight</span>
+                                        </div>
+                                        <div class="input-shell">
+                                            <input id="weightInput" name="weight" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="e.g. 70" aria-describedby="weightUnitHint weightError">
+                                            <span class="unit-suffix" id="weightUnit">kg</span>
+                                        </div>
+                                        <span class="sr-only" id="weightUnitHint">Weight in kilograms</span>
+                                        <p class="field-error" id="weightError" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="field" id="heightField">
+                                        <div id="metricHeight">
+                                            <div class="label-row">
+                                                <label for="heightInput" data-i18n="calc.height">Height</label>
+                                                <span class="hint" data-i18n="calc.heightHint">Without shoes</span>
+                                            </div>
+                                            <div class="input-shell">
+                                                <input id="heightInput" name="height" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="e.g. 175" aria-describedby="heightError">
+                                                <span class="unit-suffix">cm</span>
+                                            </div>
+                                        </div>
+
+                                        <fieldset class="height-group" id="imperialHeight" hidden>
+                                            <legend class="label-row">
+                                                <span data-i18n="calc.height">Height</span>
+                                                <span class="hint" data-i18n="calc.heightHint">Without shoes</span>
+                                            </legend>
+                                            <div class="split-inputs">
+                                                <div class="input-shell">
+                                                    <label class="sr-only" for="feetInput" data-i18n="calc.feetAria">Height in feet</label>
+                                                    <input id="feetInput" name="feet" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5" aria-describedby="heightError">
+                                                    <span class="unit-suffix" data-i18n="calc.feet">ft</span>
+                                                </div>
+                                                <div class="input-shell">
+                                                    <label class="sr-only" for="inchesInput" data-i18n="calc.inchesAria">Height in inches</label>
+                                                    <input id="inchesInput" name="inches" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="8" aria-describedby="heightError">
+                                                    <span class="unit-suffix" data-i18n="calc.inches">in</span>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                        <p class="field-error" id="heightError" role="alert" hidden></p>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <div class="form-actions form-actions--live">
+                                <p class="live-note"><span class="live-dot" aria-hidden="true"></span><span data-i18n="calc.liveNote">Results update live as you slide.</span></p>
+                                <button class="btn btn-quiet btn-small" id="resetButton" type="button" data-i18n="calc.reset">Reset</button>
                             </div>
                             <p class="privacy-line"><svg class="icon" aria-hidden="true"><use href="#icon-lock"></use></svg><span data-i18n="calc.privacy">Calculated in your browser. Nothing is uploaded.</span></p>
                         </form>

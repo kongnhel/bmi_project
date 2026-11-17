@@ -92,7 +92,7 @@ const en = {
 
   'calc.eyebrow': 'BMI workspace',
   'calc.title': 'BMI calculator',
-  'calc.description': 'Enter your current measurements. Results update as you type and are never uploaded.',
+  'calc.description': 'Slide to adjust your measurements. Results update live and are never uploaded.',
   'calc.panelTitle': 'Your measurements',
   'calc.panelText': 'Use accurate, current values for the best estimate.',
   'calc.onDevice': 'On your device',
@@ -119,6 +119,8 @@ const en = {
   'calc.inchesPlaceholder': '8',
   'calc.calculate': 'Calculate BMI',
   'calc.reset': 'Reset',
+  'calc.liveNote': 'Results update live as you slide.',
+  'calc.manualEntry': 'Enter exact values',
   'calc.privacy': 'Calculated in your browser. Nothing is uploaded.',
 
   'error.weightRequired': 'Enter your weight to continue.',
@@ -398,7 +400,7 @@ const km = {
 
   'calc.eyebrow': 'កន្លែងគណនា BMI',
   'calc.title': 'ម៉ាស៊ីនគណនា BMI',
-  'calc.description': 'បញ្ចូលការវាស់វែងបច្ចុប្បន្នរបស់អ្នក។ លទ្ធផលធ្វើបច្ចុប្បន្នភាពពេលអ្នកវាយ ហើយមិនត្រូវបានផ្ញើទៅណាឡើយ។',
+  'calc.description': 'រំកិលដើម្បីកែសម្រួលការវាស់វែងរបស់អ្នក។ លទ្ធផលធ្វើបច្ចុប្បន្នភាពភ្លាមៗ ហើយមិនត្រូវបានផ្ញើទៅណាឡើយ។',
   'calc.panelTitle': 'ការវាស់វែងរបស់អ្នក',
   'calc.panelText': 'ប្រើតម្លៃត្រឹមត្រូវ និងបច្ចុប្បន្ន ដើម្បីទទួលបានការប៉ាន់ស្មានល្អបំផុត។',
   'calc.onDevice': 'នៅលើឧបករណ៍របស់អ្នក',
@@ -423,6 +425,8 @@ const km = {
   'calc.inchesPlaceholder': '8',
   'calc.calculate': 'គណនា BMI',
   'calc.reset': 'កំណត់ឡើងវិញ',
+  'calc.liveNote': 'លទ្ធផលធ្វើបច្ចុប្បន្នភាពភ្លាមៗនៅពេលអ្នករំកិល។',
+  'calc.manualEntry': 'បញ្ចូលតម្លៃឲ្យជាក់លាក់',
   'calc.privacy': 'គណនានៅក្នុងកម្មវិធីរុករករបស់អ្នក។ គ្មានអ្វីត្រូវបានផ្ញើទេ។',
 
   'error.weightRequired': 'សូមបញ្ចូលទម្ងន់របស់អ្នកដើម្បីបន្ត។',
