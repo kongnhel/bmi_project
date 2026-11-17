@@ -4429,91 +4429,142 @@ html[lang="km"] .assistant-gender-label {
 /* Assistant responsive layout */
 @media (max-width: 920px) {
     .assistant-shell {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: minmax(178px, 52%) minmax(0, 1fr);
     }
 
     .assistant-stage {
-        min-height: 580px;
+        min-height: 620px;
+    }
+
+    .assistant-viewport {
+        inset: 52px 4px 114px;
+    }
+
+    .assistant-stage-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 7px;
+    }
+
+    .assistant-shape-badge {
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    .assistant-hint {
+        right: 8px;
+        bottom: 100px;
+        left: 8px;
+    }
+
+    .assistant-controls {
+        right: 8px;
+        bottom: 12px;
+        left: 8px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 36px));
+        justify-content: center;
+        gap: 4px;
+        transform: none;
+    }
+
+    .assistant-control {
+        width: 100%;
+        height: 34px;
+    }
+
+    .assistant-control-divider {
+        display: none;
     }
 
     .assistant-panel {
-        padding: clamp(24px, 4vw, 36px);
+        padding: clamp(20px, 3vw, 32px);
     }
 
     .assistant-bubble {
-        margin-block: 24px;
-    }
-
-    .assistant-bubble::before {
-        display: none;
+        margin-block: 20px;
     }
 }
 
 @media (max-width: 640px) {
     .assistant-shell {
+        grid-template-columns: minmax(174px, 52%) minmax(0, 1fr);
         border-radius: 24px;
     }
 
     .assistant-stage {
-        min-height: 500px;
+        min-height: 600px;
+    }
+
+    .assistant-viewport {
+        inset: 50px 2px 110px;
     }
 
     .assistant-stage-top {
-        top: 14px;
-        right: 14px;
-        left: 14px;
-        flex-wrap: wrap;
+        top: 12px;
+        right: 12px;
+        left: 12px;
+        gap: 6px;
     }
 
     .assistant-shape-badge {
-        max-width: 160px;
+        max-width: 100%;
         font-size: 9px;
+    }
+
+    .assistant-hint {
+        bottom: 98px;
+        padding-inline: 4px;
+        font-size: 9.5px;
+    }
+
+    .assistant-controls {
+        right: 6px;
+        bottom: 10px;
+        left: 6px;
+        grid-template-columns: repeat(3, minmax(0, 34px));
+        gap: 3px;
+        padding: 4px;
+    }
+
+    .assistant-control {
+        height: 32px;
     }
 
     .assistant-gender {
         margin-top: 16px;
     }
 
+    .assistant-gender-options {
+        gap: 7px;
+    }
+
     .gender-card {
-        min-height: 104px;
+        min-height: 102px;
     }
 
-    .assistant-viewport {
-        inset: 52px 0 96px;
-    }
-
-    .assistant-hint {
-        bottom: 74px;
-        padding-inline: 44px;
-        font-size: 9.5px;
-    }
-
-    .assistant-controls {
-        bottom: 14px;
-    }
-
-    .assistant-control {
-        width: 42px;
-        height: 42px;
+    .gender-name {
+        font-size: 10.5px;
     }
 
     .assistant-panel {
-        padding: 22px 20px;
+        padding: 18px 15px;
     }
 
     .assistant-bubble {
-        padding: 18px;
+        padding: 16px;
         border-radius: 18px;
     }
 
     .assistant-bubble p {
-        font-size: 0.96rem;
-        line-height: 1.8;
+        font-size: 0.93rem;
+        line-height: 1.75;
     }
 
     .assistant-panel-footer {
         flex-direction: column;
         align-items: flex-start;
+        gap: 10px;
     }
 
     .assistant-local {
@@ -4526,27 +4577,43 @@ html[lang="km"] .assistant-gender-label {
     }
 
     .assistant-fallback-portrait {
-        width: min(160px, 54%);
+        width: min(150px, 62%);
     }
 }
 
 @media (max-width: 380px) {
+    .assistant-shell {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .assistant-stage {
-        min-height: 460px;
+        min-height: 500px;
     }
 
     .assistant-viewport {
-        inset: 50px 0 92px;
+        inset: 50px 4px 104px;
+    }
+
+    .assistant-controls {
+        right: auto;
+        bottom: 14px;
+        left: 50%;
+        display: flex;
+        width: max-content;
+        max-width: calc(100% - 24px);
+        gap: 2px;
+        transform: translateX(-50%);
     }
 
     .assistant-control {
-        width: 40px;
-        height: 40px;
+        width: 38px;
+        height: 38px;
+        flex: none;
     }
 
     .assistant-hint {
-        bottom: 70px;
-        padding-inline: 30px;
+        bottom: 78px;
+        padding-inline: 20px;
     }
 
     .assistant-state-pill {
@@ -4555,11 +4622,11 @@ html[lang="km"] .assistant-gender-label {
     }
 
     .gender-card {
-        min-height: 96px;
+        min-height: 98px;
     }
 
     .assistant-bubble p {
-        font-size: 0.94rem;
+        font-size: 0.92rem;
     }
 }
 @media (prefers-reduced-motion: reduce) {

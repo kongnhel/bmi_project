@@ -10,7 +10,7 @@ The original repository was a small static BMI page. This iteration preserves it
 
 The character is rendered with Three.js inside a dynamically imported WebGL scene. It is not a PNG, video, emoji, or pre-rendered animation.
 
-The 3D guide now sits beside the hero heading, with the calculator workspace immediately below. At 1240 px and wider the hero uses two columns; below that the character stacks beneath the copy and remains fully usable. The bundled character is a **procedural articulated Three.js assistant** that stands in for the final production GLB. It has:
+The 3D guide now sits beside the hero heading, with the calculator workspace immediately below. At 1240 px and wider the hero uses two columns. Inside the assistant, tablet and phone widths use a dedicated split-screen experience — the interactive character stage stays on the left at roughly half the assistant width and Avery’s character panel stays on the right; very narrow phones stack the stage near the top. The bundled character is a **procedural articulated Three.js assistant** that stands in for the final production GLB. It has:
 
 - A human-proportioned 3D body built from real geometry with male and female variants sharing one rig and animation system.
 - A gender selector with two runtime-rendered 3D portrait previews, instant switching and locally remembered preference.
@@ -90,6 +90,7 @@ The GLB integration expects named clips (`Idle`, `Caring`, `Welcome`, `Explain`,
 - Contextual speech bubble that reacts to every calculated result.
 - Every category maps to a tested character state and illustrative body label.
 - Male and female character cards with two runtime-rendered 3D preview portraits.
+- A mobile/tablet split-screen assistant: a large interactive character stage on the left, compact character controls and guidance on the right, with clean stacking on very narrow phones.
 - Gender switching preserves the current BMI, camera and character state; the choice is stored locally.
 - Actual unrounded BMI updates the character continuously, including within the same category.
 - Body shape uses damped torso/clothing morph targets plus rig-compatible limb and hip scaling. No uniform whole-character scaling is used.
@@ -224,7 +225,9 @@ Current verification status:
 - 22/22 gender, preview, shape, persistence and mobile-overflow checks passing.
 - 51/51 continuous actual-BMI checks passing, including distinct geometry inside the same category.
 - 40/40 hero-layout checks passing at seven widths in English, Khmer, light and dark themes.
+- 32/32 mobile split-screen checks passing at 768, 560, 430, 390 and 320 px.
 - Hero character is verified beside the heading at ≥1240 px and cleanly stacked below it at smaller widths; the calculator begins after the hero at every tested width.
+- Mobile assistant is verified as a split-screen stage/panel layout at 768, 560, 430 and 390 px, with clean stacking at 320 px.
 - BMI boundary, character-state and continuous body-shape tests for all six categories.
 - Male/female selection verified by distinct rendered previews, character changes, result preservation and reload persistence.
 - Continuous BMI states at 22, 24, 27.1, 29.8, 30, 34.7, 36, 39.8 and 40 verified with rendered stage changes.

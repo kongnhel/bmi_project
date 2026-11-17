@@ -21,6 +21,10 @@ const CAMERA_HOME = Object.freeze({
   targetY: 0.94,
 });
 
+const CAMERA_BASE_FOV = 30;
+const CAMERA_NARROW_ASPECT = 0.52;
+const CAMERA_MAX_NARROW_FOV = 45;
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -325,8 +329,17 @@ export class AssistantScene {
   resize() {
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
+    const aspect = width / height;
     this.renderer.setSize(width, height, false);
-    this.camera.aspect = width / height;
+    this.camera.aspect = aspect;
+    if (aspect < CAMERA_NARROW_ASPECT) {
+      const baseTan = Math.tan((CAMERA_BASE_FOV / 2) * (Math.PI / 180));
+      const narrowTan = (baseTan * CAMERA_NARROW_ASPECT) / aspect;
+      const narrowFov = 2 * Math.atan(narrowTan) * (180 / Math.PI);
+      this.camera.fov = Math.min(CAMERA_MAX_NARROW_FOV, Math.max(CAMERA_BASE_FOV, narrowFov));
+    } else {
+      this.camera.fov = CAMERA_BASE_FOV;
+    }
     this.camera.updateProjectionMatrix();
     this.render();
   }
