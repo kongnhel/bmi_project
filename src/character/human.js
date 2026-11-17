@@ -1,5 +1,6 @@
 import * as THREE from '../../vendor/three/three.module.min.js';
 import { getCharacterState } from './state.js';
+import { QUALITY_TIERS } from './quality.js';
 import {
   getBodyMorphsForBmi,
   getMorphDelta,
@@ -158,8 +159,12 @@ function dampVec(current, target, lambda, delta) {
   current.z = damp(current.z, target.z, lambda, delta);
 }
 
-export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {}) {
+export function createProceduralHuman({ gender = 'male', initialBmi = 22, quality = 'high' } = {}) {
   const variant = VARIANTS[gender === 'female' ? 'female' : 'male'];
+  const profile = QUALITY_TIERS[quality] ?? QUALITY_TIERS.high;
+  // Scale every explicit segment count by the quality tier so low-end devices
+  // build lighter geometry (fewer vertices also speed up morph-target setup).
+  const S = (value) => Math.max(4, Math.round(value * profile.segScale));
   const root = new THREE.Group();
   root.name = `WellnessAssistant-${variant.key}`;
   root.userData.gender = variant.key;
@@ -191,20 +196,27 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
   };
 
   const physicalMaterial = (options) => {
-    const next = new THREE.MeshPhysicalMaterial(options);
+    if (profile.physicalMaterials) {
+      const next = new THREE.MeshPhysicalMaterial(options);
+      materials.add(next);
+      return next;
+    }
+    const { clearcoat, clearcoatRoughness, sheen, sheenColor, ...standardOptions } = options;
+    const next = new THREE.MeshStandardMaterial(standardOptions);
     materials.add(next);
     return next;
   };
 
   function makeTexture(kind) {
+    const size = profile.textureSize;
     const canvas = document.createElement('canvas');
-    canvas.width = 128;
-    canvas.height = 128;
+    canvas.width = size;
+    canvas.height = size;
     const context = canvas.getContext('2d');
-    const image = context.createImageData(128, 128);
-    for (let y = 0; y < 128; y += 1) {
-      for (let x = 0; x < 128; x += 1) {
-        const index = (y * 128 + x) * 4;
+    const image = context.createImageData(size, size);
+    for (let y = 0; y < size; y += 1) {
+      for (let x = 0; x < size; x += 1) {
+        const index = (y * size + x) * 4;
         let value = 128;
         if (kind === 'fabric') {
           const weave = ((x >> 1) + (y >> 1)) % 2 === 0 ? 3 : -3;
@@ -223,7 +235,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(kind === 'fabric' ? 7 : 4, kind === 'fabric' ? 7 : 4);
-    texture.anisotropy = 4;
+    texture.anisotropy = profile.anisotropy;
     textures.add(texture);
     return texture;
   }
@@ -272,7 +284,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
 
   function sphere(radius, meshMaterial, parent, options = {}) {
     return mesh(
-      new THREE.SphereGeometry(radius, options.segments ?? 24, options.rings ?? 18),
+      new THREE.SphereGeometry(radius, options.segments ? S(options.segments) : S(24), options.rings ? S(options.rings) : S(18)),
       meshMaterial,
       parent,
       options,
@@ -281,7 +293,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
 
   function capsule(radius, length, meshMaterial, parent, options = {}) {
     return mesh(
-      new THREE.CapsuleGeometry(radius, length, 6, 14),
+      new THREE.CapsuleGeometry(radius, length, S(6), S(14)),
       meshMaterial,
       parent,
       options,
@@ -290,7 +302,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
 
   function cylinder(radiusTop, radiusBottom, height, meshMaterial, parent, options = {}) {
     return mesh(
-      new THREE.CylinderGeometry(radiusTop, radiusBottom, height, options.segments ?? 20),
+      new THREE.CylinderGeometry(radiusTop, radiusBottom, height, S(options.segments ?? 20)),
       meshMaterial,
       parent,
       options,
@@ -398,7 +410,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
       new THREE.Vector2(0.078, -0.005),
       new THREE.Vector2(0.001, 0),
     ];
-    mesh(new THREE.LatheGeometry(profile, 22), legMaterial, leg, {
+    mesh(new THREE.LatheGeometry(profile, S(22)), legMaterial, leg, {
       scale: [...variant.legScale],
     });
     const thigh = sphere(0.07, legMaterial, leg, {
@@ -537,7 +549,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
   });
 
   // Stethoscope around the neck and down to a chest piece.
-  mesh(new THREE.TorusGeometry(0.07, 0.006, 8, 28), scope, spine, {
+  mesh(new THREE.TorusGeometry(0.07, 0.006, S(8), S(28)), scope, spine, {
     position: [0, 0.5, 0.005],
     rotation: [Math.PI / 2, 0, 0],
     castShadow: false,
@@ -548,7 +560,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
     new THREE.Vector3(-0.025, 0.3, 0.12),
     new THREE.Vector3(0.04, 0.29, 0.135),
   ]);
-  mesh(new THREE.TubeGeometry(scopeCurveLeft, 20, 0.0055, 6, false), scope, frontDetails, {
+  mesh(new THREE.TubeGeometry(scopeCurveLeft, S(20), 0.0055, S(6), false), scope, frontDetails, {
     castShadow: false,
   });
   const scopeCurveRight = new THREE.CatmullRomCurve3([
@@ -557,7 +569,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
     new THREE.Vector3(0.047, 0.32, 0.12),
     new THREE.Vector3(0.044, 0.292, 0.135),
   ]);
-  mesh(new THREE.TubeGeometry(scopeCurveRight, 18, 0.005, 6, false), scope, frontDetails, {
+  mesh(new THREE.TubeGeometry(scopeCurveRight, S(18), 0.005, S(6), false), scope, frontDetails, {
     castShadow: false,
   });
   cylinder(0.017, 0.017, 0.01, metal, frontDetails, {
@@ -651,7 +663,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
       0,
     );
     const lidPoints = lidCurve.getPoints(16).map((point) => new THREE.Vector3(point.x, point.y, 0));
-    mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(lidPoints), 16, 0.0018, 5, false), hair, eye, {
+    mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(lidPoints), S(16), 0.0018, S(5), false), hair, eye, {
       position: [0, 0.008, 0.009],
       castShadow: false,
     });
@@ -695,7 +707,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
       new THREE.Vector3(0.019, -smile * 0.001, 0.0025),
       new THREE.Vector3(0.039, smile * 0.008, 0),
     ]);
-    mouthGeometry = new THREE.TubeGeometry(curve, 18, 0.0032 * variant.lipThickness, 6, false);
+    mouthGeometry = new THREE.TubeGeometry(curve, S(18), 0.0032 * variant.lipThickness, S(6), false);
     geometries.add(mouthGeometry);
     const object = new THREE.Mesh(mouthGeometry, lip);
     object.castShadow = false;
@@ -706,7 +718,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
 
   // Hair: a shaped top cap, a back/side mass, a swept fringe and side pieces.
   mesh(
-    new THREE.SphereGeometry(0.138, 36, 24, 0, Math.PI * 2, 0, Math.PI * 0.34),
+    new THREE.SphereGeometry(0.138, S(36), S(24), 0, Math.PI * 2, 0, Math.PI * 0.34),
     hair,
     head,
     {
@@ -765,7 +777,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
       rings: 18,
       castShadow: true,
     });
-    mesh(new THREE.TorusGeometry(0.031, 0.006, 6, 22), scrubDark, head, {
+    mesh(new THREE.TorusGeometry(0.031, 0.006, S(6), S(22)), scrubDark, head, {
       position: [0, 0.145, -0.108],
       rotation: [Math.PI / 2, 0, 0],
       castShadow: false,
@@ -819,7 +831,7 @@ export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {})
       position: [0, -0.105, 0],
       scale: [1, 1, 0.93],
     });
-    mesh(new THREE.TorusGeometry(0.051, 0.0055, 6, 20), scrubDark, shoulder, {
+    mesh(new THREE.TorusGeometry(0.051, 0.0055, S(6), S(20)), scrubDark, shoulder, {
       position: [0, -0.17, 0],
       rotation: [Math.PI / 2, 0, 0],
       castShadow: false,

@@ -540,6 +540,7 @@ html[lang="km"] .btn {
     justify-content: space-between;
     gap: 20px;
     min-height: var(--header-height);
+    padding-inline: max(0px, env(safe-area-inset-left, 0px)) max(0px, env(safe-area-inset-right, 0px));
 }
 
 .brand {
@@ -3063,7 +3064,7 @@ html[lang="km"] .footer-col h3 {
 .toast {
     position: fixed;
     left: 50%;
-    bottom: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     z-index: 120;
     display: flex;
     align-items: center;
@@ -4370,9 +4371,38 @@ html[lang="km"] .assistant-gender-label {
     }
 
     .toast {
-        bottom: 14px;
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
         width: calc(100vw - 24px);
         max-width: none;
+    }
+
+    /* Touch targets: keep every tappable control at least 44px. */
+    .toast-action {
+        min-height: 44px;
+        padding: 6px 14px;
+    }
+
+    .toast-close {
+        width: 44px;
+        height: 44px;
+    }
+
+    .history-delete {
+        width: 44px;
+        height: 44px;
+    }
+
+    .result-guide-link {
+        min-height: 44px;
+    }
+
+    .btn-small {
+        min-height: 44px;
+    }
+
+    .icon-button {
+        width: 44px;
+        height: 44px;
     }
 
     .footer-links {
@@ -4522,13 +4552,14 @@ html[lang="km"] .assistant-gender-label {
         right: 6px;
         bottom: 10px;
         left: 6px;
-        grid-template-columns: repeat(3, minmax(0, 34px));
+        grid-template-columns: repeat(3, minmax(0, 44px));
         gap: 3px;
         padding: 4px;
     }
 
     .assistant-control {
-        height: 32px;
+        width: 44px;
+        height: 44px;
     }
 
     .assistant-gender {
@@ -4606,8 +4637,8 @@ html[lang="km"] .assistant-gender-label {
     }
 
     .assistant-control {
-        width: 38px;
-        height: 38px;
+        width: 44px;
+        height: 44px;
         flex: none;
     }
 

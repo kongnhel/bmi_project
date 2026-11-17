@@ -25,7 +25,7 @@ export async function generateGenderPreviews({ maleCanvas, femaleCanvas }) {
   const renderer = new THREE.WebGLRenderer({
     canvas: renderCanvas,
     alpha: true,
-    antialias: true,
+    antialias: false,
     preserveDrawingBuffer: true,
     powerPreference: 'low-power',
   });
@@ -59,7 +59,7 @@ export async function generateGenderPreviews({ maleCanvas, femaleCanvas }) {
       ['male', maleCanvas],
       ['female', femaleCanvas],
     ]) {
-      human = createProceduralHuman({ gender, initialShape: 0 });
+      human = createProceduralHuman({ gender, initialShape: 0, quality: 'low' });
       scene.add(human.group);
       renderer.render(scene, camera);
       drawPreview(targetCanvas, renderer.domElement);

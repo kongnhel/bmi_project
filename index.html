@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#f2f7fb" id="metaThemeColor">
     <title>Black Box — BMI Calculator &amp; 3D Wellness Guide</title>
@@ -12,7 +12,6 @@
     <link rel="canonical" href="https://kongnhel.github.io/bmi_project/">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="preload" href="fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="fonts/kantumruy-pro-khmer.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="style.css">
     <script type="importmap">
         {
@@ -34,6 +33,17 @@
                     'content',
                     theme === 'dark' ? '#061319' : '#f2f7fb'
                 );
+                // The Khmer webfont is only preloaded for Khmer readers; the
+                // @font-face unicode-range already defers it for English users.
+                if (stored.language === 'km') {
+                    var khmer = document.createElement('link');
+                    khmer.rel = 'preload';
+                    khmer.href = 'fonts/kantumruy-pro-khmer.woff2';
+                    khmer.as = 'font';
+                    khmer.type = 'font/woff2';
+                    khmer.crossOrigin = 'anonymous';
+                    document.head.appendChild(khmer);
+                }
             } catch (error) {
                 document.documentElement.dataset.theme = 'light';
             }

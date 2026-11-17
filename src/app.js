@@ -1136,6 +1136,7 @@ function bindEvents() {
   el.resetButton.addEventListener('click', () => {
     window.clearTimeout(state.liveTimer);
     el.form.reset();
+    el.weightInput.focus();
     state.touched.clear();
     state.attemptedSubmit = false;
     state.lastSignature = '';
@@ -1147,7 +1148,6 @@ function bindEvents() {
     syncUnitUi();
     updateSaveButton();
     updateExportButtons();
-    el.weightInput.focus();
   });
 
   el.languageSelect.addEventListener('change', () => {

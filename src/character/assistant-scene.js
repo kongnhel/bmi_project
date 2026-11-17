@@ -3,6 +3,7 @@ import { createProceduralHuman } from './human.js';
 import { MODEL_CONFIG } from './config.js';
 import { loadConfiguredModel } from './model-loader.js';
 import { getCharacterState } from './state.js';
+import { QUALITY_TIERS, detectQualityTier, stepTier } from './quality.js';
 import {
   getBodyMorphsForBmi,
   getModelMorphInfluences,
@@ -67,18 +68,25 @@ export class AssistantScene {
     this.pointers = new Map();
     this.pinchDistance = null;
     this.abort = new AbortController();
+    this.quality = detectQualityTier();
+    this.tier = QUALITY_TIERS[this.quality];
+    this.frameIndex = 0;
+    this.fpsSamples = 0;
+    this.fpsTime = 0;
+    this.fpsWarmUntil = performance.now() + 2500;
+    this.qualityDowngrades = 0;
 
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
-      antialias: true,
+      antialias: this.tier.antialias,
       powerPreference: 'high-performance',
     });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.tier.dprCap));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.06;
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = this.tier.shadowMapEnabled;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setClearColor(0x000000, 0);
 
@@ -101,6 +109,7 @@ export class AssistantScene {
     this.configureTheme('light');
     this.canvas.dataset.renderer = 'three';
     this.canvas.dataset.engine = 'webgl';
+    this.canvas.dataset.quality = this.quality;
     this.canvas.addEventListener('webglcontextlost', (event) => {
       event.preventDefault();
       this.onError(new Error('WebGL context lost'));
@@ -112,30 +121,32 @@ export class AssistantScene {
   }
 
   createStudioEnvironment() {
+    const width = this.tier.envCanvasWidth;
+    const height = this.tier.envCanvasHeight;
     const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 512;
+    canvas.width = width;
+    canvas.height = height;
     const context = canvas.getContext('2d');
-    const vertical = context.createLinearGradient(0, 0, 0, 512);
+    const vertical = context.createLinearGradient(0, 0, 0, height);
     vertical.addColorStop(0, '#f8fdff');
     vertical.addColorStop(0.46, '#eaf5f7');
     vertical.addColorStop(1, '#d4e2e5');
     context.fillStyle = vertical;
-    context.fillRect(0, 0, 1024, 512);
+    context.fillRect(0, 0, width, height);
 
-    const keyGlow = context.createRadialGradient(300, 150, 10, 300, 150, 280);
+    const keyGlow = context.createRadialGradient(width * 0.29, height * 0.29, 10, width * 0.29, height * 0.29, width * 0.27);
     keyGlow.addColorStop(0, 'rgba(255, 248, 235, 0.95)');
     keyGlow.addColorStop(0.45, 'rgba(255, 248, 235, 0.25)');
     keyGlow.addColorStop(1, 'rgba(255, 248, 235, 0)');
     context.fillStyle = keyGlow;
-    context.fillRect(0, 0, 1024, 512);
+    context.fillRect(0, 0, width, height);
 
-    const coolGlow = context.createRadialGradient(780, 250, 10, 780, 250, 310);
+    const coolGlow = context.createRadialGradient(width * 0.76, height * 0.49, 10, width * 0.76, height * 0.49, width * 0.3);
     coolGlow.addColorStop(0, 'rgba(178, 235, 255, 0.65)');
     coolGlow.addColorStop(0.5, 'rgba(178, 235, 255, 0.16)');
     coolGlow.addColorStop(1, 'rgba(178, 235, 255, 0)');
     context.fillStyle = coolGlow;
-    context.fillRect(0, 0, 1024, 512);
+    context.fillRect(0, 0, width, height);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -153,6 +164,7 @@ export class AssistantScene {
     const human = createProceduralHuman({
       gender: this.currentGender,
       initialBmi: this.currentBmi,
+      quality: this.quality,
     });
     human.setBodyMorphs(this.currentMorphState);
     human.setState(this.currentStateKey);
@@ -161,7 +173,18 @@ export class AssistantScene {
     return human;
   }
 
+  rebuildHuman() {
+    if (this.human) {
+      this.root.remove(this.human.group);
+      this.human.dispose();
+      this.human = null;
+    }
+    this.human = this.createHuman();
+    this.human.setState(this.currentStateKey);
+  }
+
   buildStage() {
+    const seg = (value) => Math.max(8, Math.round(value * this.tier.segScale));
     this.platformMaterial = new THREE.MeshPhysicalMaterial({
       color: 0xfbfdfc,
       roughness: 0.6,
@@ -169,7 +192,7 @@ export class AssistantScene {
       clearcoatRoughness: 0.4,
     });
     this.platform = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.49, 0.53, 0.035, 72),
+      new THREE.CylinderGeometry(0.49, 0.53, 0.035, seg(72)),
       this.platformMaterial,
     );
     this.platform.position.y = -0.018;
@@ -182,7 +205,7 @@ export class AssistantScene {
       opacity: 0.32,
     });
     this.ring = new THREE.Mesh(
-      new THREE.TorusGeometry(0.44, 0.0026, 8, 96),
+      new THREE.TorusGeometry(0.44, 0.0026, seg(8), seg(96)),
       this.ringMaterial,
     );
     this.ring.rotation.x = Math.PI / 2;
@@ -191,7 +214,7 @@ export class AssistantScene {
 
     this.shadowMaterial = new THREE.ShadowMaterial({ opacity: 0.17 });
     this.contactShadow = new THREE.Mesh(
-      new THREE.CircleGeometry(0.43, 64),
+      new THREE.CircleGeometry(0.43, seg(64)),
       this.shadowMaterial,
     );
     this.contactShadow.rotation.x = -Math.PI / 2;
@@ -211,8 +234,8 @@ export class AssistantScene {
     this.keyLight = new THREE.DirectionalLight(0xfff4e6, 2.4);
     this.keyLight.position.set(2.4, 3.9, 3.6);
     this.keyLight.target = target;
-    this.keyLight.castShadow = true;
-    this.keyLight.shadow.mapSize.set(1024, 1024);
+    this.keyLight.castShadow = this.tier.shadowMapEnabled;
+    this.keyLight.shadow.mapSize.set(this.tier.shadowMapSize, this.tier.shadowMapSize);
     this.keyLight.shadow.camera.left = -1.8;
     this.keyLight.shadow.camera.right = 1.8;
     this.keyLight.shadow.camera.top = 3;
@@ -226,11 +249,13 @@ export class AssistantScene {
     this.fillLight = new THREE.DirectionalLight(0xb9e8ff, 0.75);
     this.fillLight.position.set(-3.2, 2.1, 2.7);
     this.fillLight.target = target;
+    this.fillLight.visible = this.tier.rimLights;
     this.scene.add(this.fillLight);
 
     this.rimLight = new THREE.DirectionalLight(0x6ee7d8, 1.15);
     this.rimLight.position.set(-0.6, 2.8, -3.4);
     this.rimLight.target = target;
+    this.rimLight.visible = this.tier.rimLights;
     this.scene.add(this.rimLight);
   }
 
@@ -466,6 +491,7 @@ export class AssistantScene {
       const delta = Math.min(0.05, Math.max(0.001, (now - this.lastTime) / 1000));
       this.lastTime = now;
       this.step(delta);
+      this.frameIndex = (this.frameIndex + 1) % this.tier.renderInterval;
       this.frame = requestAnimationFrame(tick);
     };
     this.frame = requestAnimationFrame(tick);
@@ -475,6 +501,69 @@ export class AssistantScene {
     this.running = false;
     if (this.frame) cancelAnimationFrame(this.frame);
     this.frame = null;
+  }
+
+  /**
+   * Live quality switch. Applies the DPR cap, shadow map, rim lights and a
+   * rebuilt human (lower segment counts) without recreating the scene.
+   */
+  setQualityTier(tier, { rebuild = true } = {}) {
+    if (!QUALITY_TIERS[tier] || tier === this.quality) return;
+    this.quality = tier;
+    this.tier = QUALITY_TIERS[tier];
+
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.tier.dprCap));
+
+    const shadowEnabled = this.tier.shadowMapEnabled;
+    if (this.keyLight) {
+      this.keyLight.castShadow = shadowEnabled;
+      const size = this.tier.shadowMapSize;
+      if (this.keyLight.shadow.mapSize.x !== size) {
+        this.keyLight.shadow.mapSize.set(size, size);
+        this.keyLight.shadow.map?.dispose();
+        this.keyLight.shadow.map = null;
+      }
+      if (this.renderer.shadowMap.enabled !== shadowEnabled) {
+        this.renderer.shadowMap.enabled = shadowEnabled;
+        if (!shadowEnabled) {
+          this.keyLight.shadow.map?.dispose();
+          this.keyLight.shadow.map = null;
+        }
+      }
+    }
+    if (this.fillLight) this.fillLight.visible = this.tier.rimLights;
+    if (this.rimLight) this.rimLight.visible = this.tier.rimLights;
+
+    this.canvas.dataset.quality = tier;
+    if (rebuild && this.human) this.rebuildHuman();
+    this.resize();
+  }
+
+  /**
+   * Rolling FPS sample (90 frames). The first 2.5 seconds after construction
+   * are ignored because shader compilation makes the opening frames janky.
+   * Sustained frames below ~34fps then downgrade the tier — at most twice
+   * (high → medium → low) so the scene settles instead of oscillating.
+   */
+  monitorPerformance(delta) {
+    if (this.qualityDowngrades >= 2) return;
+    if (performance.now() < this.fpsWarmUntil) {
+      this.fpsSamples = 0;
+      this.fpsTime = 0;
+      return;
+    }
+    this.fpsSamples += 1;
+    this.fpsTime += delta;
+    if (this.fpsSamples < 90) return;
+    const fps = this.fpsSamples / this.fpsTime;
+    this.fpsSamples = 0;
+    this.fpsTime = 0;
+    if (fps < 34 && this.quality !== 'low') {
+      this.qualityDowngrades += 1;
+      const nextTier = stepTier(this.quality, -1);
+      const rebuild = QUALITY_TIERS[nextTier].segScale < this.tier.segScale;
+      this.setQualityTier(nextTier, { rebuild });
+    }
   }
 
   step(delta) {
@@ -495,7 +584,8 @@ export class AssistantScene {
       this.modelMixer.update(delta);
       this.updateMorphs(delta);
     }
-    this.render();
+    this.monitorPerformance(delta);
+    if (this.frameIndex === 0) this.render();
   }
 
   render() {

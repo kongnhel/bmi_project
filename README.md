@@ -28,6 +28,7 @@ The 3D guide now sits beside the hero heading, with the calculator workspace imm
 - Idle breathing, blinking, head movement and a friendly default expression.
 - Pointer drag rotation, pinch/wheel zoom, accessible camera buttons and reset.
 - Dynamically imported scene module, viewport activation, offscreen render pausing, capped pixel ratio and full disposal.
+- Adaptive rendering quality. Device capabilities (CPU cores, device memory, pointer type, DPR, WebGL max texture size) select a **low**, **medium** or **high** tier; a sustained-FPS monitor can step the tier down at runtime. DPR is capped at 1.0 / 1.25 / 1.5, low-tier scenes drop shadows and rim lights, geometry segment counts and texture sizes scale with the tier, and the human is rebuilt at the new detail level when the tier changes. `?quality=low|medium|high` is a support/testing override.
 - Reduced-motion support that removes idle movement while keeping user-controlled camera interaction.
 - A 2D fallback and guidance when WebGL is unavailable.
 - Optional speech synthesis, **off by default**, controlled by the user.
@@ -91,6 +92,7 @@ The GLB integration expects named clips (`Idle`, `Caring`, `Welcome`, `Explain`,
 - Every category maps to a tested character state and illustrative body label.
 - Male and female character cards with two runtime-rendered 3D preview portraits.
 - A mobile/tablet split-screen assistant: a large interactive character stage on the left, compact character controls and guidance on the right, with clean stacking on very narrow phones.
+- Mobile UX tuned for real phones: safe-area insets for the header, toast and edge controls; 44px minimum touch targets for camera controls, toast actions, history deletion and compact buttons; no horizontal overflow from 320px upward.
 - Gender switching preserves the current BMI, camera and character state; the choice is stored locally.
 - Actual unrounded BMI updates the character continuously, including within the same category.
 - Body shape uses damped torso/clothing morph targets plus rig-compatible limb and hip scaling. No uniform whole-character scaling is used.
@@ -122,7 +124,7 @@ The GLB integration expects named clips (`Idle`, `Caring`, `Welcome`, `Explain`,
 - Semantic headings, labels, error messages, landmarks and lists.
 - Keyboard-accessible navigation, camera controls, form fields and dialogs.
 - `aria-live` result, assistant and engine-status announcements.
-- Focus-visible styles, 44px-class mobile touch controls and reduced-motion handling.
+- Focus-visible styles, 44px-class mobile touch controls, safe-area-aware mobile layout and reduced-motion handling.
 - Automated axe-core audit: zero violations across tested light/dark, English/Khmer, desktop/mobile and dialog states.
 
 ### Reports
@@ -168,12 +170,13 @@ There is still no application framework and no backend. The existing static GitH
 │   ├── report.js                 # Printable report
 │   ├── store.js                  # localStorage normalization
 │   └── character/
-│       ├── assistant-scene.js    # Three.js scene, gender switching, GLB upgrade
+│       ├── assistant-scene.js    # Three.js scene, adaptive quality, gender switching, GLB upgrade
 │       ├── body-shape.js          # Continuous BMI-to-nine-control morph system
 │       ├── config.js             # GLB clips, body and facial morph mapping
 │       ├── human.js              # Procedural male/female character and shape rig
 │       ├── model-loader.js       # Lazy GLTFLoader path
 │       ├── preview.js            # Runtime 3D portraits for gender cards
+│       ├── quality.js            # Device detection and adaptive quality tiers
 │       └── state.js              # Six BMI character states
 ├── tests/
 │   ├── bmi.test.js
@@ -218,7 +221,7 @@ npm run build   # tests + verification + optional dist/ artifact
 Current verification status:
 
 - 50 unit tests passing.
-- 775 structural, asset, module-import, ID, translation and deployment checks passing.
+- 774 structural, asset, module-import, ID, translation and deployment checks passing.
 - Browser QA in headless Chrome at 320, 390, 768, 1000, 1240, 1280 and 1440 px.
 - 64/64 calculator, validation, history, consent, theme, language, dialog and mobile checks passing.
 - 38/38 3D scene, hero placement, camera, localization, dark-theme, mobile and reduced-motion checks passing.
@@ -226,6 +229,8 @@ Current verification status:
 - 51/51 continuous actual-BMI checks passing, including distinct geometry inside the same category.
 - 40/40 hero-layout checks passing at seven widths in English, Khmer, light and dark themes.
 - 32/32 mobile split-screen checks passing at 768, 560, 430, 390 and 320 px.
+- 20/20 performance checks passing: valid tier selection, DPR caps, unthrottled FPS, CPU-throttled tier downgrade, safe-area CSS, deferred Khmer preload and 44px mobile targets.
+- 8/8 forced low-tier checks passing: low tier selected, DPR 1.0, scene renders, camera controls work, clean viewport change and no console errors.
 - Hero character is verified beside the heading at ≥1240 px and cleanly stacked below it at smaller widths; the calculator begins after the hero at every tested width.
 - Mobile assistant is verified as a split-screen stage/panel layout at 768, 560, 430 and 390 px, with clean stacking at 320 px.
 - BMI boundary, character-state and continuous body-shape tests for all six categories.
@@ -235,6 +240,7 @@ Current verification status:
 - Real WebGL render verified with software WebGL.
 - Camera rotate/zoom/reset verified by rendered-frame changes.
 - Dynamic scene import, viewport activation and offscreen render pausing verified.
+- Adaptive quality verified: capability-based tier selection, runtime downgrade under sustained low FPS, forced low-tier rendering and mobile touch-target sizing.
 - 2D fallback verified with WebGL disabled.
 - Base-path rendering verified under `/bmi_project/`.
 - Zero axe-core violations across light/dark, English/Khmer, desktop/mobile and dialog states.
@@ -278,6 +284,7 @@ BMI is a screening indicator for adults. It is not a diagnosis, does not measure
 - A Draco decoder is not bundled. Uncompressed GLB works through GLTFLoader; compressed assets require adding DRACOLoader and its decoder.
 - Speech synthesis availability and voice quality depend on the browser and operating system. Voice starts disabled.
 - WebGL is unavailable in some older or locked-down environments; the 2D fallback and all calculator features remain usable.
+- Adaptive quality selects a starting tier from device capabilities and steps down automatically when sustained FPS drops; it does not step back up without a reload.
 - History is per-browser and does not sync across devices. It can be lost if browser storage is cleared.
 - PDF export uses the browser's print-to-PDF flow rather than a bundled PDF generator.
 - Unit switching rounds displayed values to one decimal; a small validation tolerance keeps extreme conversions stable.
