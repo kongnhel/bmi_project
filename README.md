@@ -8,14 +8,15 @@ The original repository was a small static BMI page. This iteration preserves it
 
 ## The 3D wellness guide
 
-The character is rendered with Three.js inside a lazy-loaded WebGL scene. It is not a PNG, video, emoji, or pre-rendered animation.
+The character is rendered with Three.js inside a dynamically imported WebGL scene. It is not a PNG, video, emoji, or pre-rendered animation.
 
-The bundled character is a **procedural articulated Three.js assistant** that stands in for the final production GLB. It has:
+The 3D guide now sits beside the hero heading, with the calculator workspace immediately below. At 1240 px and wider the hero uses two columns; below that the character stacks beneath the copy and remains fully usable. The bundled character is a **procedural articulated Three.js assistant** that stands in for the final production GLB. It has:
 
 - A human-proportioned 3D body built from real geometry with male and female variants sharing one rig and animation system.
 - A gender selector with two runtime-rendered 3D portrait previews, instant switching and locally remembered preference.
-- A real torso morph-target pair (`BodyLean`, `BodyVolume`) driven by `morphTargetInfluences`, plus non-uniform part scaling for upper arms, thighs, shoulders, hips and clothing volume.
-- Smooth BMI-driven transitions between lean, average, larger and very-large illustrative body shapes.
+- Continuous body shape driven by the actual unrounded BMI through nine normalized controls: `torso_width`, `waist_width`, `abdomen_volume`, `chest_volume`, `upper_arm_volume`, `forearm_volume`, `thigh_volume`, `leg_volume` and `hip_width`.
+- Real torso and clothing morph targets (`BodyLean`, `torso_width`, `waist_width`, `abdomen_volume`, `chest_volume`) plus rig-compatible non-uniform segment scaling for arms, thighs, lower legs and hips.
+- Smooth BMI-anchor interpolation with no jumps at category boundaries and no whole-character uniform scaling.
 - Articulated shoulders, elbows, hands, neck and head.
 - A medical-inspired wardrobe with scrub top, badge and stethoscope that moves with the body volume.
 - A facial rig with eyes, blinking, eyebrows and a dynamically rebuilt mouth curve.
@@ -26,7 +27,7 @@ The bundled character is a **procedural articulated Three.js assistant** that st
 - Smooth damping between gestures and expressions.
 - Idle breathing, blinking, head movement and a friendly default expression.
 - Pointer drag rotation, pinch/wheel zoom, accessible camera buttons and reset.
-- Lazy loading near the viewport, offscreen render pausing, capped pixel ratio and full disposal.
+- Dynamically imported scene module, viewport activation, offscreen render pausing, capped pixel ratio and full disposal.
 - Reduced-motion support that removes idle movement while keeping user-controlled camera interaction.
 - A 2D fallback and guidance when WebGL is unavailable.
 - Optional speech synthesis, **off by default**, controlled by the user.
@@ -42,6 +43,8 @@ The bundled character is a **procedural articulated Three.js assistant** that st
 | Obesity Class II | Empathetic expression, reassuring open gesture | Very large |
 | Obesity Class III | Empathetic expression, respectful supportive gesture | Very large |
 
+The displayed label remains discrete for clarity, but the body shape is not. The controller interpolates all nine controls through BMI anchors `15, 16, 17, 18.5, 22, 25, 30, 35, 40, 50` using smoothstep, so BMI 27.1 and 29.8 produce visibly different intermediate shapes.
+
 Body size is shown as a clearly labeled **illustrative visualization only**. It is not a prediction or representation of a user's real body, body-fat distribution, muscle mass or appearance. All copy is non-stigmatizing and the application states clearly that BMI is a screening indicator, not a diagnosis or a measure of personal worth. The character is a wellness guide, not a clinician.
 
 ## Replacing the procedural character with a production GLB
@@ -56,7 +59,7 @@ The project includes a real GLB loading path:
 
 No GLB is bundled today, and no fake model URL is referenced. `modelUrl` is intentionally `null` until licensed, optimized male and female characters are supplied. The procedural assistant remains available as a polished fallback during that transition.
 
-The GLB integration expects named clips (`Idle`, `Caring`, `Welcome`, `Explain`, `Support`, `Empathetic`), optional ARKit-style facial blend shapes and optional `BodyLean` / `BodyVolume` shape keys. These are configurable without rewriting scene code. Because the current config accepts one model URL, adding two production gender models requires a small config/scene-selector extension; the procedural shared variant system does not.
+The GLB integration expects named clips (`Idle`, `Caring`, `Welcome`, `Explain`, `Support`, `Empathetic`), optional ARKit-style facial blend shapes, `BodyLean`, and optional growth shape keys for all nine controls. Limb and hip keys can be omitted when the rig uses non-uniform bone scaling. These are configurable without rewriting scene code. Because the current config accepts one model URL, adding two production gender models requires a small config/scene-selector extension; the procedural shared variant system does not.
 
 ## Product features
 
@@ -85,12 +88,13 @@ The GLB integration expects named clips (`Idle`, `Caring`, `Welcome`, `Explain`,
 ### Assistant experience
 
 - Contextual speech bubble that reacts to every calculated result.
-- Every category maps to a tested character state and illustrative body shape.
+- Every category maps to a tested character state and illustrative body label.
 - Male and female character cards with two runtime-rendered 3D preview portraits.
 - Gender switching preserves the current BMI, camera and character state; the choice is stored locally.
-- Body volumes morph smoothly using procedural torso morph targets and non-uniform part scaling.
+- Actual unrounded BMI updates the character continuously, including within the same category.
+- Body shape uses damped torso/clothing morph targets plus rig-compatible limb and hip scaling. No uniform whole-character scaling is used.
 - Character state also updates when a result is cleared or becomes invalid.
-- The assistant section is linked from the main navigation and the result card.
+- The hero character is linked from the main navigation and the result card.
 - A permanently visible disclaimer states that body visualization is illustrative and cannot determine real body shape, fat distribution, muscle mass or appearance.
 - Voice synthesis is disabled by default and never required.
 - WebGL and device capability fallback.
@@ -164,7 +168,7 @@ There is still no application framework and no backend. The existing static GitH
 │   ├── store.js                  # localStorage normalization
 │   └── character/
 │       ├── assistant-scene.js    # Three.js scene, gender switching, GLB upgrade
-│       ├── body-shape.js         # BMI-to-body levels and morph weights
+│       ├── body-shape.js          # Continuous BMI-to-nine-control morph system
 │       ├── config.js             # GLB clips, body and facial morph mapping
 │       ├── human.js              # Procedural male/female character and shape rig
 │       ├── model-loader.js       # Lazy GLTFLoader path
@@ -205,27 +209,34 @@ Open `http://localhost:4173`. Serve over HTTP; ES modules do not work from a `fi
 ## Test, verify and build
 
 ```bash
-npm test        # 42 unit tests
+npm test        # 50 unit tests
 npm run verify  # assets, module imports, IDs, i18n, vendor and deployment checks
 npm run build   # tests + verification + optional dist/ artifact
 ```
 
 Current verification status:
 
-- 42 unit tests passing.
-- Structural, asset, import, translation and deployment verification passing.
-- Browser QA in headless Chrome at 320, 390, 768, 1000 and 1440 px.
-- BMI boundary, character-state and body-shape mapping tests for all six categories.
+- 50 unit tests passing.
+- 775 structural, asset, module-import, ID, translation and deployment checks passing.
+- Browser QA in headless Chrome at 320, 390, 768, 1000, 1240, 1280 and 1440 px.
+- 64/64 calculator, validation, history, consent, theme, language, dialog and mobile checks passing.
+- 38/38 3D scene, hero placement, camera, localization, dark-theme, mobile and reduced-motion checks passing.
+- 22/22 gender, preview, shape, persistence and mobile-overflow checks passing.
+- 51/51 continuous actual-BMI checks passing, including distinct geometry inside the same category.
+- 40/40 hero-layout checks passing at seven widths in English, Khmer, light and dark themes.
+- Hero character is verified beside the heading at ≥1240 px and cleanly stacked below it at smaller widths; the calculator begins after the hero at every tested width.
+- BMI boundary, character-state and continuous body-shape tests for all six categories.
 - Male/female selection verified by distinct rendered previews, character changes, result preservation and reload persistence.
-- Lean/average/larger/very-large states verified with rendered stage changes.
+- Continuous BMI states at 22, 24, 27.1, 29.8, 30, 34.7, 36, 39.8 and 40 verified with rendered stage changes.
 - Runtime-rendered 3D portraits verified in gender cards.
 - Real WebGL render verified with software WebGL.
 - Camera rotate/zoom/reset verified by rendered-frame changes.
-- Lazy Three.js loading verified by network timing.
+- Dynamic scene import, viewport activation and offscreen render pausing verified.
 - 2D fallback verified with WebGL disabled.
 - Base-path rendering verified under `/bmi_project/`.
-- Zero axe-core violations in the tested states.
+- Zero axe-core violations across light/dark, English/Khmer, desktop/mobile and dialog states.
 - Zero runtime console errors in the success and fallback paths.
+- `npm run build` creates `dist/` successfully (approximately 1.4 MB).
 
 ## Deploy to GitHub Pages
 
@@ -258,7 +269,7 @@ BMI is a screening indicator for adults. It is not a diagnosis, does not measure
 ## Known limitations
 
 - The bundled male/female characters are procedural stylized 3D previews, not final photorealistic or custom-rigged GLBs. No licensed production models were supplied; the loader, body/shape-key contract and documentation are ready.
-- The procedural system uses real torso morph targets plus rig-compatible part scaling, but its body model is still an illustrative approximation. BMI cannot determine actual body shape or composition, and the UI states this clearly.
+- The procedural system computes all nine controls continuously, applying four torso/clothing growth morphs plus `BodyLean` on the mesh and rig-compatible non-uniform scaling for the other five. It is still an illustrative approximation; BMI cannot determine actual body shape or composition, and the UI states this clearly.
 - The procedural placeholder uses articulated object groups and procedural facial controls rather than a formal skinned skeleton with facial blend shapes. The production GLB path supports skinned models, AnimationMixer clips and facial/body morph targets.
 - The current GLB config supports one production model URL at a time. Adding two production gender GLBs requires a small config and scene-selector extension; the procedural gender system needs none.
 - A Draco decoder is not bundled. Uncompressed GLB works through GLTFLoader; compressed assets require adding DRACOLoader and its decoder.

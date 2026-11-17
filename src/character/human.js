@@ -1,5 +1,10 @@
 import * as THREE from '../../vendor/three/three.module.min.js';
 import { getCharacterState } from './state.js';
+import {
+  getBodyMorphsForBmi,
+  getMorphDelta,
+  getTorsoMorphInfluences,
+} from './body-shape.js';
 
 const SKIN = 0xd6a57e;
 const HAIR = 0x2b211d;
@@ -153,7 +158,7 @@ function dampVec(current, target, lambda, delta) {
   current.z = damp(current.z, target.z, lambda, delta);
 }
 
-export function createProceduralHuman({ gender = 'male', initialShape = 0 } = {}) {
+export function createProceduralHuman({ gender = 'male', initialBmi = 22 } = {}) {
   const variant = VARIANTS[gender === 'female' ? 'female' : 'male'];
   const root = new THREE.Group();
   root.name = `WellnessAssistant-${variant.key}`;
@@ -171,8 +176,8 @@ export function createProceduralHuman({ gender = 'male', initialShape = 0 } = {}
     shoes: [],
     arms: [],
   };
-  let shapeCurrent = Math.min(1, Math.max(-1, Number(initialShape) || 0));
-  let shapeTarget = shapeCurrent;
+  let targetMorphState = getBodyMorphsForBmi(initialBmi);
+  const currentMorphs = { ...targetMorphState.controls };
 
   const geometries = new Set();
   const materials = new Set();
@@ -299,8 +304,8 @@ export function createProceduralHuman({ gender = 'male', initialShape = 0 } = {}
 
   /**
    * Adds real morph targets to the procedural tunic. The production GLB can
-   * use equivalent Blender shape keys (BodyLean / BodyVolume); the controls are
-   * the same morphTargetInfluences contract.
+   * use equivalent Blender shape keys (BodyLean, torso_width, waist_width,
+   * abdomen_volume, chest_volume); the controls use the same morphTargetInfluences contract.
    */
   function addTorsoMorphTargets(torsoMesh) {
     const geometry = torsoMesh.geometry;
@@ -309,7 +314,10 @@ export function createProceduralHuman({ gender = 'male', initialShape = 0 } = {}
     const positions = geometry.attributes.position;
     const base = positions.array;
     const leanDeltas = new Float32Array(base.length);
-    const volumeDeltas = new Float32Array(base.length);
+    const torsoWidthDeltas = new Float32Array(base.length);
+    const waistWidthDeltas = new Float32Array(base.length);
+    const abdomenDeltas = new Float32Array(base.length);
+    const chestDeltas = new Float32Array(base.length);
     const minY = bounds.min.y;
     const height = Math.max(0.0001, bounds.max.y - minY);
 
@@ -319,27 +327,48 @@ export function createProceduralHuman({ gender = 'male', initialShape = 0 } = {}
       const normalisedY = (base[index + 1] - minY) / height;
       const abdomen = smoothRange(0.02, 0.24, normalisedY)
         * (1 - smoothRange(0.42, 0.68, normalisedY));
+      const waist = smoothRange(0.02, 0.3, normalisedY)
+        * (1 - smoothRange(0.52, 0.76, normalisedY));
       const chest = smoothRange(0.55, 0.94, normalisedY);
+      const upper = smoothRange(0.35, 0.85, normalisedY);
 
-      leanDeltas[index] = -x * (0.2 * abdomen + 0.055 * chest);
-      leanDeltas[index + 1] = -base[index + 1] * 0.006 * abdomen;
-      leanDeltas[index + 2] = -z * (0.17 * abdomen + 0.03 * chest);
+      leanDeltas[index] = -x * (0.18 * waist + 0.05 * chest);
+      leanDeltas[index + 1] = -base[index + 1] * 0.006 * waist;
+      leanDeltas[index + 2] = -z * (0.16 * waist + 0.03 * chest);
 
-      volumeDeltas[index] = x * (0.22 * abdomen + 0.075 * chest);
-      volumeDeltas[index + 1] = 0;
-      volumeDeltas[index + 2] = z * (0.5 * abdomen + 0.04 * chest)
-        + 0.04 * abdomen;
+      torsoWidthDeltas[index] = x * 0.13 * (0.55 + 0.45 * upper);
+      torsoWidthDeltas[index + 2] = z * 0.03 * (0.55 + 0.45 * upper);
+
+      waistWidthDeltas[index] = x * 0.2 * waist;
+      waistWidthDeltas[index + 2] = z * 0.05 * waist;
+
+      abdomenDeltas[index] = x * 0.07 * abdomen;
+      abdomenDeltas[index + 2] = z * 0.55 * abdomen + 0.055 * abdomen;
+
+      chestDeltas[index] = x * 0.09 * chest;
+      chestDeltas[index + 2] = z * 0.12 * chest;
     }
 
-    const leanAttribute = new THREE.BufferAttribute(leanDeltas, 3);
-    leanAttribute.name = 'BodyLean';
-    const volumeAttribute = new THREE.BufferAttribute(volumeDeltas, 3);
-    volumeAttribute.name = 'BodyVolume';
+    const targets = [
+      ['BodyLean', leanDeltas],
+      ['torso_width', torsoWidthDeltas],
+      ['waist_width', waistWidthDeltas],
+      ['abdomen_volume', abdomenDeltas],
+      ['chest_volume', chestDeltas],
+    ];
     geometry.morphTargetsRelative = true;
-    geometry.morphAttributes.position = [leanAttribute, volumeAttribute];
+    geometry.morphAttributes.position = targets.map(([, values]) => {
+      const attribute = new THREE.BufferAttribute(values, 3);
+      return attribute;
+    });
+    geometry.morphAttributes.position.forEach((attribute, index) => {
+      attribute.name = targets[index][0];
+    });
 
-    torsoMesh.morphTargetDictionary = { BodyLean: 0, BodyVolume: 1 };
-    torsoMesh.morphTargetInfluences = [0, 0];
+    torsoMesh.morphTargetDictionary = Object.fromEntries(
+      targets.map(([name], index) => [name, index]),
+    );
+    torsoMesh.morphTargetInfluences = targets.map(() => 0);
   }
 
   // Legs and feet -----------------------------------------------------------
@@ -372,6 +401,15 @@ export function createProceduralHuman({ gender = 'male', initialShape = 0 } = {}
     mesh(new THREE.LatheGeometry(profile, 22), legMaterial, leg, {
       scale: [...variant.legScale],
     });
+    const thigh = sphere(0.07, legMaterial, leg, {
+      position: [0, -0.13, 0.006],
+      scale: [1, 1.8, 0.9],
+      segments: 18,
+      rings: 14,
+    });
+    const legRef = shapeRefs.legs[shapeRefs.legs.length - 1];
+    legRef.thigh = thigh;
+    legRef.baseThighScale = [1, 1.8, 0.9];
 
     // Soft sock bridge from trouser hem to shoe.
     cylinder(0.047, 0.05, 0.14, shirt, leg, {
@@ -828,6 +866,8 @@ export function createProceduralHuman({ gender = 'male', initialShape = 0 } = {}
 
   const leftArm = buildArm(-1);
   const rightArm = buildArm(1);
+  shapeRefs.arms[0].elbow = leftArm.elbow;
+  shapeRefs.arms[1].elbow = rightArm.elbow;
 
   // Animation state --------------------------------------------------------
   let currentState = getCharacterState('idle');
@@ -855,49 +895,82 @@ export function createProceduralHuman({ gender = 'male', initialShape = 0 } = {}
   };
 
   function applyPoseTargets(delta) {
-    shapeCurrent = damp(shapeCurrent, shapeTarget, SHAPE_SMOOTHING, delta);
-    const volume = Math.max(0, shapeCurrent);
-    const lean = Math.max(0, -shapeCurrent);
-
-    if (shapeRefs.torso) {
-      shapeRefs.torso.morphTargetInfluences[0] = lean;
-      shapeRefs.torso.morphTargetInfluences[1] = volume;
+    for (const key of Object.keys(currentMorphs)) {
+      const target = targetMorphState.controls[key];
+      if (Number.isFinite(target)) {
+        currentMorphs[key] = damp(currentMorphs[key], target, SHAPE_SMOOTHING, delta);
+      }
     }
+
+    const morphState = { controls: currentMorphs };
+    const torsoInfluences = getTorsoMorphInfluences(morphState);
+    if (shapeRefs.torso?.morphTargetInfluences) {
+      const dictionary = shapeRefs.torso.morphTargetDictionary ?? {};
+      for (const [name, influence] of Object.entries(torsoInfluences)) {
+        const index = dictionary[name];
+        if (Number.isInteger(index)) {
+          shapeRefs.torso.morphTargetInfluences[index] = influence;
+        }
+      }
+    }
+
+    const torsoWidthDelta = getMorphDelta(morphState, 'torso_width');
+    const waistDelta = getMorphDelta(morphState, 'waist_width');
+    const abdomenDelta = getMorphDelta(morphState, 'abdomen_volume');
+    const chestDelta = getMorphDelta(morphState, 'chest_volume');
+    const upperArmDelta = getMorphDelta(morphState, 'upper_arm_volume');
+    const forearmDelta = getMorphDelta(morphState, 'forearm_volume');
+    const thighDelta = getMorphDelta(morphState, 'thigh_volume');
+    const legDelta = getMorphDelta(morphState, 'leg_volume');
+    const hipDelta = getMorphDelta(morphState, 'hip_width');
 
     if (shapeRefs.frontDetails) {
-      shapeRefs.frontDetails.position.z = volume * 0.028 - lean * 0.006;
+      shapeRefs.frontDetails.position.z = torsoInfluences.abdomen_volume * 0.055
+        + torsoInfluences.chest_volume * 0.018
+        - torsoInfluences.lean * 0.006;
     }
 
-    const widthFactor = 1 + 0.12 * volume - 0.055 * lean;
-    const depthFactor = 1 + 0.22 * volume - 0.08 * lean;
+    const hemWidth = 1 + hipDelta * 0.2 + waistDelta * 0.07;
+    const hemDepth = 1 + abdomenDelta * 0.32 + hipDelta * 0.06;
     if (shapeRefs.hem) {
-      shapeRefs.hem.mesh.scale.x = shapeRefs.hem.baseScale[0] * widthFactor;
-      shapeRefs.hem.mesh.scale.z = shapeRefs.hem.baseScale[2] * depthFactor;
+      shapeRefs.hem.mesh.scale.x = shapeRefs.hem.baseScale[0] * hemWidth;
+      shapeRefs.hem.mesh.scale.z = shapeRefs.hem.baseScale[2] * hemDepth;
     }
     if (shapeRefs.waist) {
-      shapeRefs.waist.mesh.scale.x = shapeRefs.waist.baseScale[0] * widthFactor;
-      shapeRefs.waist.mesh.scale.z = shapeRefs.waist.baseScale[2] * depthFactor;
+      shapeRefs.waist.mesh.scale.x = shapeRefs.waist.baseScale[0] * (1 + waistDelta * 0.18);
+      shapeRefs.waist.mesh.scale.z = shapeRefs.waist.baseScale[2] * (1 + abdomenDelta * 0.18);
     }
     if (shapeRefs.pelvis) {
-      shapeRefs.pelvis.mesh.scale.x = shapeRefs.pelvis.baseScale[0] * widthFactor;
-      shapeRefs.pelvis.mesh.scale.z = shapeRefs.pelvis.baseScale[2] * depthFactor;
+      shapeRefs.pelvis.mesh.scale.x = shapeRefs.pelvis.baseScale[0] * (1 + hipDelta * 0.25);
+      shapeRefs.pelvis.mesh.scale.z = shapeRefs.pelvis.baseScale[2] * (1 + abdomenDelta * 0.12 + hipDelta * 0.1);
     }
 
     for (const arm of shapeRefs.arms) {
-      arm.group.position.x = arm.baseX * (1 + 0.05 * volume - 0.02 * lean);
-      const armScale = arm.baseScale * (1 + 0.1 * volume - 0.04 * lean);
-      arm.group.scale.x = armScale;
-      arm.group.scale.z = armScale;
+      arm.group.position.x = arm.baseX * (1 + torsoWidthDelta * 0.1 + upperArmDelta * 0.03);
+      const upperScale = arm.baseScale * (1 + upperArmDelta * 0.22);
+      arm.group.scale.x = upperScale;
+      arm.group.scale.z = upperScale;
+      if (arm.elbow) {
+        const forearmScale = 1 + forearmDelta * 0.18;
+        arm.elbow.scale.x = forearmScale;
+        arm.elbow.scale.z = forearmScale;
+      }
     }
 
     for (const leg of shapeRefs.legs) {
-      leg.group.position.x = leg.baseX * (1 + 0.07 * volume - 0.025 * lean);
-      leg.group.scale.x = leg.baseScaleX * (1 + 0.09 * volume - 0.045 * lean);
-      leg.group.scale.z = leg.baseScaleZ * (1 + 0.09 * volume - 0.045 * lean);
+      leg.group.position.x = leg.baseX * (1 + hipDelta * 0.1 + abdomenDelta * 0.03);
+      const legScale = 1 + legDelta * 0.14 + thighDelta * 0.03;
+      leg.group.scale.x = leg.baseScaleX * legScale;
+      leg.group.scale.z = leg.baseScaleZ * legScale;
+      if (leg.thigh) {
+        leg.thigh.scale.x = leg.baseThighScale[0] * (1 + thighDelta * 0.35 + legDelta * 0.08);
+        leg.thigh.scale.y = leg.baseThighScale[1] * (1 + thighDelta * 0.05);
+        leg.thigh.scale.z = leg.baseThighScale[2] * (1 + thighDelta * 0.35 + legDelta * 0.08);
+      }
     }
 
     for (const shoe of shapeRefs.shoes) {
-      shoe.group.position.x = shoe.baseX * (1 + 0.07 * volume - 0.025 * lean);
+      shoe.group.position.x = shoe.baseX * (1 + hipDelta * 0.1 + abdomenDelta * 0.03);
     }
 
     const gesture = GESTURE_POSES[currentState.gesture] ?? REST_POSE;
@@ -991,11 +1064,14 @@ export function createProceduralHuman({ gender = 'male', initialShape = 0 } = {}
       reducedMotion = Boolean(value);
       if (reducedMotion) blinkStart = -1;
     },
-    setBodyShape(level) {
-      shapeTarget = Math.min(1, Math.max(-1, Number(level) || 0));
+    setBmi(bmi) {
+      targetMorphState = getBodyMorphsForBmi(bmi);
     },
-    getBodyShape() {
-      return shapeCurrent;
+    setBodyMorphs(morphState) {
+      if (morphState?.controls) targetMorphState = morphState;
+    },
+    getBodyMorphs() {
+      return { ...currentMorphs };
     },
     getGender() {
       return variant.key;

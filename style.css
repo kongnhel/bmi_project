@@ -765,9 +765,27 @@ html[lang="km"] .brand-sub {
 
 .hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
-    gap: clamp(36px, 6vw, 84px);
+    gap: clamp(36px, 5vw, 52px);
+}
+
+@media (min-width: 1240px) {
+    .hero .container {
+        width: min(calc(100% - 48px), 1280px);
+    }
+
+    .hero-grid {
+        grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+        gap: clamp(32px, 3.6vw, 56px);
+    }
+}
+
+.hero-character {
+    --assistant-accent: var(--accent);
+    --assistant-soft: var(--accent-soft);
+    min-width: 0;
+    width: 100%;
 }
 
 .hero-copy {
@@ -1167,6 +1185,7 @@ html[lang="km"] .preview-kicker {
 .calculator-section {
     border-block: 1px solid var(--line);
     background: var(--bg-elevated);
+    padding-top: clamp(32px, 4vw, 56px);
 }
 
 .calculator-grid {
@@ -3150,32 +3169,38 @@ html[lang="km"] .footer-col h3 {
         var(--bg);
 }
 
-.assistant-section[data-assistant-state="underweight"] {
+.assistant-section[data-assistant-state="underweight"],
+.hero-character[data-assistant-state="underweight"] {
     --assistant-accent: var(--cat-underweight);
     --assistant-soft: var(--cat-underweight-soft);
 }
 
-.assistant-section[data-assistant-state="healthy"] {
+.assistant-section[data-assistant-state="healthy"],
+.hero-character[data-assistant-state="healthy"] {
     --assistant-accent: var(--cat-healthy);
     --assistant-soft: var(--cat-healthy-soft);
 }
 
-.assistant-section[data-assistant-state="overweight"] {
+.assistant-section[data-assistant-state="overweight"],
+.hero-character[data-assistant-state="overweight"] {
     --assistant-accent: var(--cat-overweight);
     --assistant-soft: var(--cat-overweight-soft);
 }
 
-.assistant-section[data-assistant-state="obesity1"] {
+.assistant-section[data-assistant-state="obesity1"],
+.hero-character[data-assistant-state="obesity1"] {
     --assistant-accent: var(--cat-obesity1);
     --assistant-soft: var(--cat-obesity1-soft);
 }
 
-.assistant-section[data-assistant-state="obesity2"] {
+.assistant-section[data-assistant-state="obesity2"],
+.hero-character[data-assistant-state="obesity2"] {
     --assistant-accent: var(--cat-obesity2);
     --assistant-soft: var(--cat-obesity2-soft);
 }
 
-.assistant-section[data-assistant-state="obesity3"] {
+.assistant-section[data-assistant-state="obesity3"],
+.hero-character[data-assistant-state="obesity3"] {
     --assistant-accent: var(--cat-obesity3);
     --assistant-soft: var(--cat-obesity3-soft);
 }

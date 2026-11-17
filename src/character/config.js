@@ -22,9 +22,19 @@ export const MODEL_CONFIG = Object.freeze({
   }),
   bodyMorphs: Object.freeze({
     lean: 'BodyLean',
-    volume: 'BodyVolume',
+    torso_width: 'torso_width',
+    waist_width: 'waist_width',
+    abdomen_volume: 'abdomen_volume',
+    chest_volume: 'chest_volume',
+    upper_arm_volume: 'upper_arm_volume',
+    forearm_volume: 'forearm_volume',
+    thigh_volume: 'thigh_volume',
+    leg_volume: 'leg_volume',
+    hip_width: 'hip_width',
   }),
   /**
+   * Growth targets are relative to the average body. Limb and hip targets are
+   * optional; omit them when the delivered rig uses non-uniform bone scaling.
    * Morph target names are intentionally configurable. The defaults use
    * ARKit-style blendshape names commonly found on production avatar rigs.
    * Adjust these names to match the delivered GLB.

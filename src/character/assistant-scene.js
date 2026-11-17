@@ -3,7 +3,10 @@ import { createProceduralHuman } from './human.js';
 import { MODEL_CONFIG } from './config.js';
 import { loadConfiguredModel } from './model-loader.js';
 import { getCharacterState } from './state.js';
-import { getBodyMorphWeights, getBodyShapeLevel } from './body-shape.js';
+import {
+  getBodyMorphsForBmi,
+  getModelMorphInfluences,
+} from './body-shape.js';
 
 const CAMERA_LIMITS = Object.freeze({
   yaw: [-0.8, 0.8],
@@ -27,7 +30,7 @@ function damp(current, target, lambda, delta) {
 }
 
 export class AssistantScene {
-  constructor(canvas, { container, onError = () => {}, onModelInfo = () => {}, gender = 'male' } = {}) {
+  constructor(canvas, { container, onError = () => {}, onModelInfo = () => {}, gender = 'male', bmi = 22 } = {}) {
     if (!canvas || !container) throw new Error('The 3D assistant requires a canvas and a container.');
     this.canvas = canvas;
     this.container = container;
@@ -40,7 +43,8 @@ export class AssistantScene {
     this.reducedMotion = false;
     this.currentStateKey = 'idle';
     this.currentGender = gender === 'female' ? 'female' : 'male';
-    this.currentShapeLevel = 0;
+    this.currentBmi = Number.isFinite(bmi) ? bmi : 22;
+    this.currentMorphState = getBodyMorphsForBmi(this.currentBmi);
     this.modelMixer = null;
     this.modelActions = new Map();
     this.modelActiveAction = null;
@@ -144,8 +148,9 @@ export class AssistantScene {
   createHuman() {
     const human = createProceduralHuman({
       gender: this.currentGender,
-      initialShape: this.currentShapeLevel,
+      initialBmi: this.currentBmi,
     });
+    human.setBodyMorphs(this.currentMorphState);
     human.setState(this.currentStateKey);
     human.setReducedMotion(this.reducedMotion);
     this.root.add(human.group);
@@ -353,15 +358,36 @@ export class AssistantScene {
     }
   }
 
-  setCharacterState(stateKey) {
-    this.currentStateKey = getCharacterState(stateKey).key;
-    this.currentShapeLevel = getBodyShapeLevel(this.currentStateKey);
-    this.human?.setBodyShape(this.currentShapeLevel);
+  /**
+   * Single character controller entry point. Gender, actual BMI, category and
+   * animation state are applied together so the body, face and UI stay in sync.
+   */
+  updateCharacter({
+    gender = this.currentGender,
+    bmi = this.currentBmi,
+    categoryKey = this.currentStateKey,
+    animationState = categoryKey,
+  } = {}) {
+    this.setGender(gender);
+
+    const nextBmi = Number.isFinite(bmi) ? bmi : 22;
+    this.currentBmi = nextBmi;
+    this.currentMorphState = getBodyMorphsForBmi(nextBmi);
+    this.human?.setBodyMorphs(this.currentMorphState);
+
+    this.currentStateKey = getCharacterState(animationState ?? categoryKey).key;
     this.human?.setState(this.currentStateKey);
+
     if (this.modelMixer) {
       this.applyModelAnimation(this.currentStateKey);
       this.applyModelExpression(this.currentStateKey);
     }
+    this.canvas.dataset.bmi = nextBmi.toFixed(3);
+    this.render();
+  }
+
+  setCharacterState(stateKey) {
+    this.updateCharacter({ categoryKey: stateKey, animationState: stateKey });
   }
 
   setGender(gender) {
@@ -390,7 +416,7 @@ export class AssistantScene {
       this.human = null;
     }
     this.human = this.createHuman();
-    this.setCharacterState(this.currentStateKey);
+    this.human.setState(this.currentStateKey);
     this.render();
   }
 
@@ -569,7 +595,7 @@ export class AssistantScene {
       if (this.morphEntries.has(name)) this.morphTargets.set(name, value);
     }
 
-    const bodyWeights = getBodyMorphWeights(this.currentShapeLevel);
+    const bodyWeights = getModelMorphInfluences(this.currentMorphState);
     for (const [kind, name] of Object.entries(MODEL_CONFIG.bodyMorphs ?? {})) {
       if (name && this.morphEntries.has(name)) {
         this.morphTargets.set(name, bodyWeights[kind] ?? 0);

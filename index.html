@@ -214,12 +214,12 @@
             <div class="hero-glow" aria-hidden="true"></div>
             <div class="container hero-grid">
                 <div class="hero-copy">
-                    <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span><span data-i18n="hero.eyebrow">Private health check-in</span></p>
-                    <h1 id="heroTitle" data-i18n="hero.title">Know your BMI. Understand what it means.</h1>
-                    <p class="hero-lead" data-i18n="hero.text">A clear, private way to check your body mass index, see your healthy weight range, and follow changes over time — all on your device.</p>
+                    <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span><span data-i18n="hero.eyebrow">Your BMI workspace</span></p>
+                    <h1 id="heroTitle" data-i18n="hero.title">Check your body mass index</h1>
+                    <p class="hero-lead" data-i18n="hero.text">Start with a clear, private check-in. Enter your measurements below to see your BMI, healthy weight range, and an illustrative body response from your 3D wellness guide.</p>
                     <div class="hero-actions">
                         <a class="btn btn-primary" href="#calculator">
-                            <span data-i18n="hero.ctaPrimary">Calculate your BMI</span>
+                            <span data-i18n="hero.ctaPrimary">Go to the calculator</span>
                             <svg class="icon" aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
                         </a>
                         <a class="btn btn-quiet" href="#learn">
@@ -233,57 +233,145 @@
                     </ul>
                 </div>
 
-                <div class="hero-visual" aria-hidden="true">
-                    <div class="hero-orbit orbit-one"></div>
-                    <div class="hero-orbit orbit-two"></div>
-                    <div class="hero-preview">
-                        <div class="preview-top">
-                            <div>
-                                <span class="preview-kicker" data-i18n="hero.exampleLabel">Example result</span>
-                                <div class="preview-number-row">
-                                    <span class="preview-number">22.4</span>
-                                    <span class="category-pill cat--healthy" data-i18n="cat.healthy">Healthy weight</span>
+                <div class="hero-character" id="assistant" data-assistant-state="idle" role="group" aria-labelledby="assistantTitle">
+                    <h2 class="sr-only" id="assistantTitle" data-i18n="assistant.title">Meet your wellness guide</h2>
+                    <div class="assistant-shell">
+                        <div class="assistant-stage is-loading" id="assistantStage" data-engine="loading" data-state="idle" aria-busy="true">
+                            <div class="assistant-stage-aura" aria-hidden="true"></div>
+                            <div class="assistant-stage-top">
+                                <span class="assistant-engine-badge">
+                                    <span class="live-dot" aria-hidden="true"></span>
+                                    <span id="assistantEngineBadge" data-i18n="assistant.badgeLoading">Preparing 3D</span>
+                                </span>
+                                <span class="assistant-shape-badge" id="assistantShapeBadge">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
+                                    <span data-i18n="assistant.illustrative">Illustrative</span>
+                                    <span aria-hidden="true">&middot;</span>
+                                    <span id="assistantShapeLabel" data-i18n="assistant.shape.average">Average</span>
+                                </span>
+                            </div>
+
+                            <div class="assistant-viewport" id="assistantViewport" aria-describedby="assistantSceneDescription">
+                                <canvas id="assistantCanvas" aria-hidden="true"></canvas>
+                                <div class="assistant-loader" id="assistantLoader">
+                                    <span class="assistant-spinner" aria-hidden="true"></span>
+                                    <p data-i18n="assistant.loading">Preparing your 3D guide…</p>
+                                </div>
+                                <div class="assistant-fallback" id="assistantFallback" hidden>
+                                    <svg class="assistant-fallback-portrait" viewBox="0 0 220 240" aria-hidden="true" focusable="false">
+                                        <circle cx="110" cy="118" r="94" fill="var(--assistant-fallback-halo)" />
+                                        <path d="M38 231c4-43 28-69 72-69s68 26 72 69" fill="var(--assistant-fallback-scrub)" />
+                                        <path d="M93 142h34v23c0 11-7.6 19-17 19s-17-8-17-19v-23Z" fill="var(--assistant-fallback-skin)" />
+                                        <path d="M54 93c-1-33 18-56 56-56s57 23 56 56c-5-17-18-28-34-31-15 16-46 20-65 11-5 5-9 12-13 20Z" fill="var(--assistant-fallback-hair)" />
+                                        <ellipse cx="110" cy="103" rx="35" ry="43" fill="var(--assistant-fallback-skin)" />
+                                        <circle cx="73" cy="107" r="8" fill="var(--assistant-fallback-skin)" />
+                                        <circle cx="147" cy="107" r="8" fill="var(--assistant-fallback-skin)" />
+                                        <path d="M90 99c3-4 10-4 13 0M117 99c3-4 10-4 13 0" fill="none" stroke="var(--assistant-fallback-hair)" stroke-width="5" stroke-linecap="round" />
+                                        <circle cx="97" cy="109" r="3.4" fill="var(--assistant-fallback-hair)" />
+                                        <circle cx="123" cy="109" r="3.4" fill="var(--assistant-fallback-hair)" />
+                                        <path d="M110 112v9l-5 4" fill="none" stroke="var(--assistant-fallback-skin-shadow)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M98 132c7 7 17 7 24 0" fill="none" stroke="var(--assistant-fallback-lip)" stroke-width="4" stroke-linecap="round" />
+                                        <path d="M82 153c9 16 18 24 28 24s19-8 28-24l13 6-8 22H77l-8-22 13-6Z" fill="var(--assistant-fallback-shirt)" />
+                                        <path d="M61 170c-9 3-17 8-23 14" fill="none" stroke="var(--assistant-fallback-scope)" stroke-width="4" stroke-linecap="round" />
+                                        <path d="M159 170c9 3 17 8 23 14" fill="none" stroke="var(--assistant-fallback-scope)" stroke-width="4" stroke-linecap="round" />
+                                        <circle cx="156" cy="188" r="8" fill="var(--assistant-fallback-scope)" />
+                                        <circle cx="156" cy="188" r="3.5" fill="var(--assistant-fallback-halo)" />
+                                        <rect x="78" y="181" width="24" height="17" rx="3" fill="var(--assistant-fallback-shirt)" />
+                                        <rect x="78" y="181" width="24" height="5" rx="2.5" fill="var(--assistant-fallback-scrub-dark)" />
+                                    </svg>
+                                    <div>
+                                        <h3 data-i18n="assistant.fallbackTitle">3D view unavailable</h3>
+                                        <p data-i18n="assistant.fallbackText">Your device couldn’t start the interactive view. Your calculator, history, and guidance still work normally.</p>
+                                    </div>
                                 </div>
                             </div>
-                            <span class="preview-chip"><span class="live-dot"></span><span data-i18n="hero.onDevice">On-device</span></span>
-                        </div>
-                        <div class="mini-scale">
-                            <div class="mini-scale-track">
-                                <span class="mini-seg mini-under"></span>
-                                <span class="mini-seg mini-healthy"></span>
-                                <span class="mini-seg mini-over"></span>
-                                <span class="mini-seg mini-ob1"></span>
-                                <span class="mini-seg mini-ob2"></span>
-                                <span class="mini-seg mini-ob3"></span>
-                                <span class="mini-marker" style="--marker: 31.5%"><span></span></span>
+                            <p class="sr-only" id="assistantSceneDescription" data-i18n="assistant.sceneDescription">Interactive stylized 3D wellness guide. The character faces forward with a calm, friendly expression. Its gesture and expression change gently when a BMI result is calculated.</p>
+                            <p class="assistant-hint"><span data-i18n="assistant.dragHint">Drag to rotate · pinch or scroll to zoom</span></p>
+
+                            <div class="assistant-controls" role="group" aria-label="3D view controls" data-i18n-aria-label="assistant.controlsLabel">
+                                <button class="assistant-control" id="assistantRotateLeft" type="button" disabled aria-label="Rotate left" data-i18n-aria-label="assistant.rotateLeft">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-rotate-left"></use></svg>
+                                </button>
+                                <button class="assistant-control" id="assistantRotateRight" type="button" disabled aria-label="Rotate right" data-i18n-aria-label="assistant.rotateRight">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-rotate-right"></use></svg>
+                                </button>
+                                <span class="assistant-control-divider" aria-hidden="true"></span>
+                                <button class="assistant-control" id="assistantZoomIn" type="button" disabled aria-label="Zoom in" data-i18n-aria-label="assistant.zoomIn">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-zoom-in"></use></svg>
+                                </button>
+                                <button class="assistant-control" id="assistantZoomOut" type="button" disabled aria-label="Zoom out" data-i18n-aria-label="assistant.zoomOut">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-zoom-out"></use></svg>
+                                </button>
+                                <span class="assistant-control-divider" aria-hidden="true"></span>
+                                <button class="assistant-control" id="assistantReset" type="button" disabled aria-label="Reset view" data-i18n-aria-label="assistant.resetView">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-reset"></use></svg>
+                                </button>
                             </div>
                         </div>
-                        <div class="preview-meta">
-                            <span data-i18n="hero.exampleRangeLabel">Adult healthy BMI range</span>
-                            <strong>18.5–24.9</strong>
+
+                        <div class="assistant-panel">
+                            <div class="assistant-profile">
+                                <div class="assistant-identity">
+                                    <span class="assistant-presence" aria-hidden="true"><span></span></span>
+                                    <div>
+                                        <p class="assistant-name" data-i18n="assistant.name">Avery</p>
+                                        <p class="assistant-role" data-i18n="assistant.role">Wellness guide</p>
+                                    </div>
+                                </div>
+                                <span class="assistant-state-pill" id="assistantStatePill" data-i18n="assistant.stateIdle">Ready when you are</span>
+                            </div>
+
+                            <div class="assistant-gender is-loading" id="assistantGender">
+                                <p class="assistant-gender-label" id="assistantGenderLabel" data-i18n="assistant.genderSelect">Select your character</p>
+                                <div class="assistant-gender-options" role="group" aria-labelledby="assistantGenderLabel">
+                                    <button class="gender-card" type="button" data-gender="male" aria-pressed="false">
+                                        <span class="gender-preview" aria-hidden="true">
+                                            <canvas id="assistantPreviewMale" width="360" height="200"></canvas>
+                                        </span>
+                                        <span class="gender-name" data-i18n="assistant.male">Male</span>
+                                        <span class="gender-check" aria-hidden="true"><svg class="icon"><use href="#icon-check"></use></svg></span>
+                                    </button>
+                                    <button class="gender-card" type="button" data-gender="female" aria-pressed="false">
+                                        <span class="gender-preview" aria-hidden="true">
+                                            <canvas id="assistantPreviewFemale" width="360" height="200"></canvas>
+                                        </span>
+                                        <span class="gender-name" data-i18n="assistant.female">Female</span>
+                                        <span class="gender-check" aria-hidden="true"><svg class="icon"><use href="#icon-check"></use></svg></span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="assistant-bubble" role="status" aria-live="polite" aria-atomic="true">
+                                <p id="assistantMessage" data-i18n="assistant.message.idle">Hi, I’m Avery. Enter your weight and height below, and I’ll help you make sense of the result with a little care and no judgment.</p>
+                            </div>
+
+                            <div class="assistant-panel-footer">
+                                <button class="assistant-voice" id="assistantVoiceBtn" type="button" aria-pressed="false" disabled>
+                                    <svg class="icon voice-off-icon" aria-hidden="true"><use href="#icon-volume-off"></use></svg>
+                                    <svg class="icon voice-on-icon" aria-hidden="true"><use href="#icon-volume"></use></svg>
+                                    <span id="assistantVoiceLabel" data-i18n="assistant.voiceOff">Voice off</span>
+                                </button>
+                                <span class="assistant-local">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-lock"></use></svg>
+                                    <span data-i18n="assistant.privacyNote">Rendered locally. No health data leaves this device.</span>
+                                </span>
+                            </div>
+
+                            <p class="assistant-disclaimer" data-i18n="assistant.disclaimer">Educational support only — not a diagnosis. BMI does not define your health or your worth.</p>
                         </div>
                     </div>
-                    <div class="floating-note">
-                        <span class="floating-note-icon"><svg class="icon"><use href="#icon-lock"></use></svg></span>
-                        <p data-i18n="hero.privateNote">Your measurements never leave this browser.</p>
-                    </div>
-                    <div class="floating-pill">
-                        <svg class="icon"><use href="#icon-leaf"></use></svg>
-                        <span data-i18n="hero.note">Clear guidance, not guesswork.</span>
-                    </div>
+                    <p class="assistant-visual-disclaimer">
+                        <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
+                        <span data-i18n="assistant.illustrativeNote">Illustrative body visualization only. BMI cannot determine your actual body shape, fat distribution, muscle mass, or appearance.</span>
+                    </p>
+                    <p class="sr-only" id="assistantStatus" aria-live="polite" aria-atomic="true"></p>
                 </div>
             </div>
         </section>
 
         <section class="section calculator-section" id="calculator" aria-labelledby="calculatorTitle">
             <div class="container">
-                <div class="section-heading">
-                    <div class="section-heading-copy">
-                        <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span><span data-i18n="calc.eyebrow">BMI workspace</span></p>
-                        <h2 id="calculatorTitle" data-i18n="calc.title">Check your body mass index</h2>
-                    </div>
-                    <p class="section-intro" data-i18n="calc.description">Enter your current measurements. Results update as you type and are never uploaded.</p>
-                </div>
+                <h2 class="sr-only" id="calculatorTitle" data-i18n="calc.title">BMI calculator</h2>
 
                 <div class="calculator-grid">
                     <div class="card calculator-card">
@@ -465,149 +553,6 @@
                         <p class="sr-only" id="resultLive" aria-live="polite" aria-atomic="true"></p>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <section class="section assistant-section" id="assistant" aria-labelledby="assistantTitle" data-assistant-state="idle">
-            <div class="container">
-                <div class="section-heading">
-                    <div class="section-heading-copy">
-                        <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span><span data-i18n="assistant.eyebrow">Your 3D guide</span></p>
-                        <h2 id="assistantTitle" data-i18n="assistant.title">Meet your wellness guide</h2>
-                    </div>
-                    <p class="section-intro" data-i18n="assistant.description">A friendly face for your check-in. Avery’s expression and gesture respond to your actual BMI result — gently, and without judgment.</p>
-                </div>
-
-                <div class="assistant-shell">
-                    <div class="assistant-stage is-loading" id="assistantStage" data-engine="loading" data-state="idle" aria-busy="true">
-                        <div class="assistant-stage-aura" aria-hidden="true"></div>
-                        <div class="assistant-stage-top">
-                            <span class="assistant-engine-badge">
-                                <span class="live-dot" aria-hidden="true"></span>
-                                <span id="assistantEngineBadge" data-i18n="assistant.badgeLoading">Preparing 3D</span>
-                            </span>
-                            <span class="assistant-shape-badge" id="assistantShapeBadge">
-                                <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
-                                <span data-i18n="assistant.illustrative">Illustrative</span>
-                                <span aria-hidden="true">&middot;</span>
-                                <span id="assistantShapeLabel" data-i18n="assistant.shape.average">Average</span>
-                            </span>
-                        </div>
-
-                        <div class="assistant-viewport" id="assistantViewport" aria-describedby="assistantSceneDescription">
-                            <canvas id="assistantCanvas" aria-hidden="true"></canvas>
-                            <div class="assistant-loader" id="assistantLoader">
-                                <span class="assistant-spinner" aria-hidden="true"></span>
-                                <p data-i18n="assistant.loading">Preparing your 3D guide…</p>
-                            </div>
-                            <div class="assistant-fallback" id="assistantFallback" hidden>
-                                <svg class="assistant-fallback-portrait" viewBox="0 0 220 240" aria-hidden="true" focusable="false">
-                                    <circle cx="110" cy="118" r="94" fill="var(--assistant-fallback-halo)" />
-                                    <path d="M38 231c4-43 28-69 72-69s68 26 72 69" fill="var(--assistant-fallback-scrub)" />
-                                    <path d="M93 142h34v23c0 11-7.6 19-17 19s-17-8-17-19v-23Z" fill="var(--assistant-fallback-skin)" />
-                                    <path d="M54 93c-1-33 18-56 56-56s57 23 56 56c-5-17-18-28-34-31-15 16-46 20-65 11-5 5-9 12-13 20Z" fill="var(--assistant-fallback-hair)" />
-                                    <ellipse cx="110" cy="103" rx="35" ry="43" fill="var(--assistant-fallback-skin)" />
-                                    <circle cx="73" cy="107" r="8" fill="var(--assistant-fallback-skin)" />
-                                    <circle cx="147" cy="107" r="8" fill="var(--assistant-fallback-skin)" />
-                                    <path d="M90 99c3-4 10-4 13 0M117 99c3-4 10-4 13 0" fill="none" stroke="var(--assistant-fallback-hair)" stroke-width="5" stroke-linecap="round" />
-                                    <circle cx="97" cy="109" r="3.4" fill="var(--assistant-fallback-hair)" />
-                                    <circle cx="123" cy="109" r="3.4" fill="var(--assistant-fallback-hair)" />
-                                    <path d="M110 112v9l-5 4" fill="none" stroke="var(--assistant-fallback-skin-shadow)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-                                    <path d="M98 132c7 7 17 7 24 0" fill="none" stroke="var(--assistant-fallback-lip)" stroke-width="4" stroke-linecap="round" />
-                                    <path d="M82 153c9 16 18 24 28 24s19-8 28-24l13 6-8 22H77l-8-22 13-6Z" fill="var(--assistant-fallback-shirt)" />
-                                    <path d="M61 170c-9 3-17 8-23 14" fill="none" stroke="var(--assistant-fallback-scope)" stroke-width="4" stroke-linecap="round" />
-                                    <path d="M159 170c9 3 17 8 23 14" fill="none" stroke="var(--assistant-fallback-scope)" stroke-width="4" stroke-linecap="round" />
-                                    <circle cx="156" cy="188" r="8" fill="var(--assistant-fallback-scope)" />
-                                    <circle cx="156" cy="188" r="3.5" fill="var(--assistant-fallback-halo)" />
-                                    <rect x="78" y="181" width="24" height="17" rx="3" fill="var(--assistant-fallback-shirt)" />
-                                    <rect x="78" y="181" width="24" height="5" rx="2.5" fill="var(--assistant-fallback-scrub-dark)" />
-                                </svg>
-                                <div>
-                                    <h3 data-i18n="assistant.fallbackTitle">3D view unavailable</h3>
-                                    <p data-i18n="assistant.fallbackText">Your device couldn’t start the interactive view. Your calculator, history, and guidance still work normally.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="sr-only" id="assistantSceneDescription" data-i18n="assistant.sceneDescription">Interactive stylized 3D wellness guide. The character faces forward with a calm, friendly expression. Its gesture and expression change gently when a BMI result is calculated.</p>
-                        <p class="assistant-hint"><span data-i18n="assistant.dragHint">Drag to rotate · pinch or scroll to zoom</span></p>
-
-                        <div class="assistant-controls" role="group" aria-label="3D view controls" data-i18n-aria-label="assistant.controlsLabel">
-                            <button class="assistant-control" id="assistantRotateLeft" type="button" disabled aria-label="Rotate left" data-i18n-aria-label="assistant.rotateLeft">
-                                <svg class="icon" aria-hidden="true"><use href="#icon-rotate-left"></use></svg>
-                            </button>
-                            <button class="assistant-control" id="assistantRotateRight" type="button" disabled aria-label="Rotate right" data-i18n-aria-label="assistant.rotateRight">
-                                <svg class="icon" aria-hidden="true"><use href="#icon-rotate-right"></use></svg>
-                            </button>
-                            <span class="assistant-control-divider" aria-hidden="true"></span>
-                            <button class="assistant-control" id="assistantZoomIn" type="button" disabled aria-label="Zoom in" data-i18n-aria-label="assistant.zoomIn">
-                                <svg class="icon" aria-hidden="true"><use href="#icon-zoom-in"></use></svg>
-                            </button>
-                            <button class="assistant-control" id="assistantZoomOut" type="button" disabled aria-label="Zoom out" data-i18n-aria-label="assistant.zoomOut">
-                                <svg class="icon" aria-hidden="true"><use href="#icon-zoom-out"></use></svg>
-                            </button>
-                            <span class="assistant-control-divider" aria-hidden="true"></span>
-                            <button class="assistant-control" id="assistantReset" type="button" disabled aria-label="Reset view" data-i18n-aria-label="assistant.resetView">
-                                <svg class="icon" aria-hidden="true"><use href="#icon-reset"></use></svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="assistant-panel">
-                        <div class="assistant-profile">
-                            <div class="assistant-identity">
-                                <span class="assistant-presence" aria-hidden="true"><span></span></span>
-                                <div>
-                                    <p class="assistant-name" data-i18n="assistant.name">Avery</p>
-                                    <p class="assistant-role" data-i18n="assistant.role">Wellness guide</p>
-                                </div>
-                            </div>
-                            <span class="assistant-state-pill" id="assistantStatePill" data-i18n="assistant.stateIdle">Ready when you are</span>
-                        </div>
-
-                        <div class="assistant-gender is-loading" id="assistantGender">
-                            <p class="assistant-gender-label" id="assistantGenderLabel" data-i18n="assistant.genderSelect">Select your character</p>
-                            <div class="assistant-gender-options" role="group" aria-labelledby="assistantGenderLabel">
-                                <button class="gender-card" type="button" data-gender="male" aria-pressed="false">
-                                    <span class="gender-preview" aria-hidden="true">
-                                        <canvas id="assistantPreviewMale" width="360" height="200"></canvas>
-                                    </span>
-                                    <span class="gender-name" data-i18n="assistant.male">Male</span>
-                                    <span class="gender-check" aria-hidden="true"><svg class="icon"><use href="#icon-check"></use></svg></span>
-                                </button>
-                                <button class="gender-card" type="button" data-gender="female" aria-pressed="false">
-                                    <span class="gender-preview" aria-hidden="true">
-                                        <canvas id="assistantPreviewFemale" width="360" height="200"></canvas>
-                                    </span>
-                                    <span class="gender-name" data-i18n="assistant.female">Female</span>
-                                    <span class="gender-check" aria-hidden="true"><svg class="icon"><use href="#icon-check"></use></svg></span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="assistant-bubble" role="status" aria-live="polite" aria-atomic="true">
-                            <p id="assistantMessage" data-i18n="assistant.message.idle">Hi, I’m Avery. Enter your weight and height above, and I’ll help you make sense of the result with a little care and no judgment.</p>
-                        </div>
-
-                        <div class="assistant-panel-footer">
-                            <button class="assistant-voice" id="assistantVoiceBtn" type="button" aria-pressed="false" disabled>
-                                <svg class="icon voice-off-icon" aria-hidden="true"><use href="#icon-volume-off"></use></svg>
-                                <svg class="icon voice-on-icon" aria-hidden="true"><use href="#icon-volume"></use></svg>
-                                <span id="assistantVoiceLabel" data-i18n="assistant.voiceOff">Voice off</span>
-                            </button>
-                            <span class="assistant-local">
-                                <svg class="icon" aria-hidden="true"><use href="#icon-lock"></use></svg>
-                                <span data-i18n="assistant.privacyNote">Rendered locally. No health data leaves this device.</span>
-                            </span>
-                        </div>
-
-                        <p class="assistant-disclaimer" data-i18n="assistant.disclaimer">Educational support only — not a diagnosis. BMI does not define your health or your worth.</p>
-                    </div>
-                </div>
-                <p class="assistant-visual-disclaimer">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
-                    <span data-i18n="assistant.illustrativeNote">Illustrative body visualization only. BMI cannot determine your actual body shape, fat distribution, muscle mass, or appearance.</span>
-                </p>
-                <p class="sr-only" id="assistantStatus" aria-live="polite" aria-atomic="true"></p>
             </div>
         </section>
 

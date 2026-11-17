@@ -140,7 +140,12 @@ function updateContent({ speak = false } = {}) {
   elements.section.dataset.assistantState = stateKey;
   elements.stage.dataset.state = stateKey;
   updateShapeDisplay();
-  scene?.setCharacterState(stateKey);
+  scene?.updateCharacter({
+    gender: view.gender,
+    bmi: Number.isFinite(view.bmi) ? view.bmi : 22,
+    categoryKey: view.categoryKey,
+    animationState: stateKey,
+  });
 
   if (speak && view.voiceEnabled) {
     speakCurrentMessage();
@@ -321,6 +326,7 @@ async function startScene() {
     const nextScene = new AssistantScene(elements.canvas, {
       container: elements.viewport,
       gender: view.gender,
+      bmi: Number.isFinite(view.bmi) ? view.bmi : 22,
       onError: onSceneError,
       onModelInfo: (info) => {
         if (elements.stage) elements.stage.dataset.character = info.active ? 'glb' : 'procedural';
@@ -331,8 +337,12 @@ async function startScene() {
     nextScene.setReducedMotion(view.reducedMotion);
     scene = nextScene;
     showScene();
-    scene.setGender(view.gender);
-    scene.setCharacterState(currentStateKey());
+    scene.updateCharacter({
+      gender: view.gender,
+      bmi: Number.isFinite(view.bmi) ? view.bmi : 22,
+      categoryKey: view.categoryKey,
+      animationState: currentStateKey(),
+    });
     scene.setActive(view.visible && !document.hidden);
   } catch {
     showFallback();
