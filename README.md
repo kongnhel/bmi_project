@@ -10,7 +10,7 @@ The original repository was a small static BMI page. This iteration preserves it
 
 The character is rendered with Three.js inside a dynamically imported WebGL scene. It is not a PNG, video, emoji, or pre-rendered animation.
 
-The 3D guide sits beside the hero heading on wide screens, with the calculator workspace immediately below. At 1240 px and wider the hero uses two columns. Tablet and phone layouts stack the interactive character stage above Avery’s compact character panel; phones use a dedicated single-column layout with a short, fully framed 3D stage. The bundled character is a **procedural articulated Three.js assistant** that stands in for the final production GLB. It has:
+The 3D guide, weight and height sliders, and the live BMI result share one compact **unified dashboard** directly below the hero heading. On wide screens the three primary cards sit in a single row — character stage, result summary, measurement controls — with a compact character strip underneath containing gender, model style, camera view, guidance and voice controls. Tablets use a two-column dashboard and phones stack the character, result and sliders with tight spacing. The dashboard is styled as a dark health-tech console with the existing cyan accent in both site themes. The bundled character is a **procedural articulated Three.js assistant** that stands in for the final production GLB. It has:
 
 - A human-proportioned parametric body built from smooth lofted torso, hip, sleeve, arm and leg surfaces, with male and female variants sharing one rig and animation system.
 - A gender selector with two runtime-rendered 3D portrait previews, instant switching and locally remembered preference.
@@ -92,7 +92,7 @@ The GLB integration expects named clips (`Idle`, `Caring`, `Welcome`, `Explain`,
 - Contextual speech bubble that reacts to every calculated result.
 - Every category maps to a tested character state and illustrative body label.
 - Male and female character cards with two runtime-rendered 3D preview portraits.
-- A mobile/tablet split-screen assistant: a large interactive character stage on the left, compact character controls and guidance on the right, with clean stacking on very narrow phones.
+- A compact responsive dashboard: the character stage, live result and measurement controls stay together in a single row on desktop, a two-column layout on tablets, and a tight character → result → sliders stack on phones down to 320 px. Gender, model style, camera presets, guidance and voice controls sit in a compact strip directly beneath.
 - Mobile UX tuned for real phones: safe-area insets for the header, toast and edge controls; 44px minimum touch targets for camera controls, toast actions, history deletion and compact buttons; no horizontal overflow from 320px upward.
 - Gender switching preserves the current BMI, camera and character state; the choice is stored locally.
 - Actual unrounded BMI updates the character continuously, including within the same category.
@@ -185,6 +185,7 @@ There is still no application framework and no backend. The existing static GitH
 │   ├── character-state.test.js
 │   ├── format.test.js
 │   ├── i18n.test.js
+│   ├── quality.test.js
 │   └── store.test.js
 ├── scripts/
 │   ├── build.js
@@ -214,26 +215,26 @@ Open `http://localhost:4173`. Serve over HTTP; ES modules do not work from a `fi
 ## Test, verify and build
 
 ```bash
-npm test        # 50 unit tests
+npm test        # 58 unit tests
 npm run verify  # assets, module imports, IDs, i18n, vendor and deployment checks
 npm run build   # tests + verification + optional dist/ artifact
 ```
 
 Current verification status:
 
-- 50 unit tests passing.
-- 774 structural, asset, module-import, ID, translation and deployment checks passing.
-- Browser QA in headless Chrome at 320, 390, 768, 1000, 1240, 1280 and 1440 px.
+- 58 unit tests passing.
+- 832 structural, asset, module-import, ID, translation and deployment checks passing.
+- Browser QA in headless Chrome at 320, 375, 390, 430, 768, 900, 1000, 1180, 1280 and 1440 px.
 - 64/64 calculator, validation, history, consent, theme, language, dialog and mobile checks passing.
 - 38/38 3D scene, hero placement, camera, localization, dark-theme, mobile and reduced-motion checks passing.
 - 22/22 gender, preview, shape, persistence and mobile-overflow checks passing.
 - 51/51 continuous actual-BMI checks passing, including distinct geometry inside the same category.
-- 40/40 hero-layout checks passing at seven widths in English, Khmer, light and dark themes.
-- 32/32 mobile split-screen checks passing at 768, 560, 430, 390 and 320 px.
+- 102/102 dashboard layout checks passing at 320, 375, 390, 430, 768, 900, 1000, 1180, 1280 and 1440 px in English, Khmer and dark/light themes: heading → dashboard order, stage inside the dashboard, primary trio ordering and adjacency, no clipping, tight gaps and cyan dark-console styling.
+- 24/24 dashboard interaction checks passing: live weight/height updates, instant BMI and classification changes, 3D morph synchronization, no scene recreation across rapid slider changes, no implicit history saves, explicit consent save, and collapsible result details.
 - 20/20 performance checks passing: valid tier selection, DPR caps, unthrottled FPS, CPU-throttled tier downgrade, safe-area CSS, deferred Khmer preload and 44px mobile targets.
 - 8/8 forced low-tier checks passing: low tier selected, DPR 1.0, scene renders, camera controls work, clean viewport change and no console errors.
-- Hero character is verified beside the heading at ≥1240 px and cleanly stacked below it at smaller widths; the calculator begins after the hero at every tested width.
-- Mobile assistant is verified as a split-screen stage/panel layout at 768, 560, 430 and 390 px, with clean stacking at 320 px.
+- The unified dashboard is verified as a single row on desktop (character, result, controls) that fits the initial viewport, a two-column tablet layout, and a tight character → result → sliders stack on phones, with bounded gaps and no horizontal overflow.
+- The 3D studio modal moves the stage, measurements, result and character strip into one workspace and restores them exactly on close.
 - BMI boundary, character-state and continuous body-shape tests for all six categories.
 - Male/female selection verified by distinct rendered previews, character changes, result preservation and reload persistence.
 - Continuous BMI states at 22, 24, 27.1, 29.8, 30, 34.7, 36, 39.8 and 40 verified with rendered stage changes.

@@ -6,7 +6,7 @@
   "description": "Black Box — a private, bilingual BMI calculator with an interactive 3D wellness guide.",
   "scripts": {
     "start": "node scripts/serve.js",
-    "test": "node --test tests/bmi.test.js tests/i18n.test.js tests/store.test.js tests/format.test.js tests/character-state.test.js tests/body-shape.test.js",
+    "test": "node --test tests/bmi.test.js tests/i18n.test.js tests/store.test.js tests/format.test.js tests/character-state.test.js tests/body-shape.test.js tests/quality.test.js",
     "verify": "node scripts/verify.js",
     "build": "npm test && npm run verify && node scripts/build.js"
   },

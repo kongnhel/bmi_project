@@ -16,6 +16,8 @@ const view = {
   weightKg: null,
   age: null,
   gender: 'male',
+  modelStyle: 'natural',
+  cameraPreset: 'threeQuarter',
   onGenderChange: null,
   voiceEnabled: false,
   voiceSupported: false,
@@ -63,6 +65,10 @@ function cacheElements() {
     voiceLabel: byId('assistantVoiceLabel'),
     genderGroup: byId('assistantGender'),
     genderButtons: [...document.querySelectorAll('.gender-card')],
+    styleGroup: byId('assistantStyle'),
+    styleButtons: [...document.querySelectorAll('[data-model-style]')],
+    viewGroup: byId('assistantView'),
+    viewButtons: [...document.querySelectorAll('[data-camera-preset]')],
     previewMale: byId('assistantPreviewMale'),
     previewFemale: byId('assistantPreviewFemale'),
     shapeBadge: byId('assistantShapeBadge'),
@@ -106,6 +112,15 @@ function updateGenderUi() {
   if (elements.stage) elements.stage.dataset.gender = view.gender;
 }
 
+function updateStyleUi() {
+  if (!elements?.styleButtons?.length) return;
+  for (const button of elements.styleButtons) {
+    const selected = button.dataset.modelStyle === view.modelStyle;
+    button.setAttribute('aria-pressed', String(selected));
+    button.classList.toggle('is-selected', selected);
+  }
+}
+
 function updateEngineBadge() {
   const badgeKey = view.sceneStatus === 'ready'
     ? 'assistant.badge3d'
@@ -122,6 +137,12 @@ function updateEngineBadge() {
   }
   if (elements.genderGroup) {
     elements.genderGroup.hidden = view.sceneStatus === 'fallback';
+  }
+  if (elements.styleGroup) {
+    elements.styleGroup.hidden = view.sceneStatus === 'fallback';
+  }
+  if (elements.viewGroup) {
+    elements.viewGroup.hidden = view.sceneStatus === 'fallback';
   }
 }
 
@@ -276,12 +297,24 @@ function bindControls() {
   elements.rotateRight?.addEventListener('click', () => scene?.rotateBy(0.22));
   elements.zoomIn?.addEventListener('click', () => scene?.zoomBy(0.35));
   elements.zoomOut?.addEventListener('click', () => scene?.zoomBy(-0.35));
-  elements.reset?.addEventListener('click', () => scene?.resetCamera());
+  elements.reset?.addEventListener('click', () => assistant.setCameraPreset('threeQuarter'));
   elements.voiceButton?.addEventListener('click', toggleVoice);
 
   for (const button of elements.genderButtons ?? []) {
     button.addEventListener('click', () => {
       assistant.setGender(button.dataset.gender);
+    });
+  }
+
+  for (const button of elements.styleButtons ?? []) {
+    button.addEventListener('click', () => {
+      assistant.setModelStyle(button.dataset.modelStyle);
+    });
+  }
+
+  for (const button of elements.viewButtons ?? []) {
+    button.addEventListener('click', () => {
+      assistant.setCameraPreset(button.dataset.cameraPreset);
     });
   }
 }
@@ -349,6 +382,8 @@ async function startScene() {
       categoryKey: view.categoryKey,
       animationState: currentStateKey(),
     });
+    scene.setModelStyle(view.modelStyle);
+    scene.setCameraPreset(view.cameraPreset);
     scene.setActive(view.visible && !document.hidden);
   } catch {
     showFallback();
@@ -380,6 +415,7 @@ export const assistant = {
     bindControls();
     updateVoiceUi();
     updateGenderUi();
+    updateStyleUi();
     updateEngineBadge();
     setupObserver();
 
@@ -411,6 +447,20 @@ export const assistant = {
       scene?.setGender(next);
       if (notify) view.onGenderChange?.(next);
     }
+  },
+
+  setModelStyle(style) {
+    const next = style === 'clay' || style === 'scan' ? style : 'natural';
+    if (next === view.modelStyle) return;
+    view.modelStyle = next;
+    if (view.initialized) updateStyleUi();
+    scene?.setModelStyle(next);
+  },
+
+  setCameraPreset(preset) {
+    const next = ['threeQuarter', 'front', 'side'].includes(preset) ? preset : 'threeQuarter';
+    view.cameraPreset = next;
+    scene?.setCameraPreset(next);
   },
 
   setResult(result) {

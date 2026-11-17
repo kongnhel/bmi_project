@@ -171,6 +171,10 @@
             <rect x="5" y="3" width="14" height="18" rx="2" />
             <path d="M9 7h3M9 11h6M9 15h4M9 19h6" />
         </symbol>
+        <symbol id="icon-expand" viewBox="0 0 24 24">
+            <path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" />
+            <path d="M4 4l6 6M20 4l-6 6M4 20l6-6M20 20l-6-6" />
+        </symbol>
     </svg>
 
     <header class="site-header">
@@ -230,20 +234,11 @@
     <main id="main" tabindex="-1">
         <section class="hero" aria-labelledby="heroTitle">
             <div class="hero-glow" aria-hidden="true"></div>
-            <div class="container hero-grid">
-                <div class="hero-copy">
+            <div class="container">
+                <div class="hero-copy hero-copy--compact">
                     <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span><span data-i18n="hero.eyebrow">Your BMI workspace</span></p>
                     <h1 id="heroTitle" data-i18n="hero.title">Check your body mass index</h1>
                     <p class="hero-lead" data-i18n="hero.text">Start with a clear, private check-in. Enter your measurements below to see your BMI, healthy weight range, and an illustrative body response from your 3D wellness guide.</p>
-                    <div class="hero-actions">
-                        <a class="btn btn-primary" href="#calculator">
-                            <span data-i18n="hero.ctaPrimary">Go to the calculator</span>
-                            <svg class="icon" aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
-                        </a>
-                        <a class="btn btn-quiet" href="#learn">
-                            <span data-i18n="hero.ctaSecondary">How BMI works</span>
-                        </a>
-                    </div>
                     <ul class="trust-list">
                         <li><svg class="icon" aria-hidden="true"><use href="#icon-shield"></use></svg><span data-i18n="hero.trustPrivate">Stays on your device</span></li>
                         <li><svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg><span data-i18n="hero.trustNoAccount">No account needed</span></li>
@@ -251,6 +246,7 @@
                     </ul>
                 </div>
 
+                <div class="bmi-dashboard" id="calculator" role="region" aria-label="BMI calculator" data-i18n-aria-label="calc.title">
                 <div class="hero-character" id="assistant" data-assistant-state="idle" role="group" aria-labelledby="assistantTitle">
                     <h2 class="sr-only" id="assistantTitle" data-i18n="assistant.title">Meet your wellness guide</h2>
                     <div class="assistant-shell">
@@ -326,57 +322,6 @@
                                 </button>
                             </div>
                         </div>
-
-                        <div class="assistant-panel">
-                            <div class="assistant-profile">
-                                <div class="assistant-identity">
-                                    <span class="assistant-presence" aria-hidden="true"><span></span></span>
-                                    <div>
-                                        <p class="assistant-name" data-i18n="assistant.name">Avery</p>
-                                        <p class="assistant-role" data-i18n="assistant.role">Wellness guide</p>
-                                    </div>
-                                </div>
-                                <span class="assistant-state-pill" id="assistantStatePill" data-i18n="assistant.stateIdle">Ready when you are</span>
-                            </div>
-
-                            <div class="assistant-gender is-loading" id="assistantGender">
-                                <p class="assistant-gender-label" id="assistantGenderLabel" data-i18n="assistant.genderSelect">Select your character</p>
-                                <div class="assistant-gender-options" role="group" aria-labelledby="assistantGenderLabel">
-                                    <button class="gender-card" type="button" data-gender="male" aria-pressed="false">
-                                        <span class="gender-preview" aria-hidden="true">
-                                            <canvas id="assistantPreviewMale" width="360" height="200"></canvas>
-                                        </span>
-                                        <span class="gender-name" data-i18n="assistant.male">Male</span>
-                                        <span class="gender-check" aria-hidden="true"><svg class="icon"><use href="#icon-check"></use></svg></span>
-                                    </button>
-                                    <button class="gender-card" type="button" data-gender="female" aria-pressed="false">
-                                        <span class="gender-preview" aria-hidden="true">
-                                            <canvas id="assistantPreviewFemale" width="360" height="200"></canvas>
-                                        </span>
-                                        <span class="gender-name" data-i18n="assistant.female">Female</span>
-                                        <span class="gender-check" aria-hidden="true"><svg class="icon"><use href="#icon-check"></use></svg></span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="assistant-bubble" role="status" aria-live="polite" aria-atomic="true">
-                                <p id="assistantMessage" data-i18n="assistant.message.idle">Hi, I’m Avery. Enter your weight and height below, and I’ll help you make sense of the result with a little care and no judgment.</p>
-                            </div>
-
-                            <div class="assistant-panel-footer">
-                                <button class="assistant-voice" id="assistantVoiceBtn" type="button" aria-pressed="false" disabled>
-                                    <svg class="icon voice-off-icon" aria-hidden="true"><use href="#icon-volume-off"></use></svg>
-                                    <svg class="icon voice-on-icon" aria-hidden="true"><use href="#icon-volume"></use></svg>
-                                    <span id="assistantVoiceLabel" data-i18n="assistant.voiceOff">Voice off</span>
-                                </button>
-                                <span class="assistant-local">
-                                    <svg class="icon" aria-hidden="true"><use href="#icon-lock"></use></svg>
-                                    <span data-i18n="assistant.privacyNote">Rendered locally. No health data leaves this device.</span>
-                                </span>
-                            </div>
-
-                            <p class="assistant-disclaimer" data-i18n="assistant.disclaimer">Educational support only — not a diagnosis. BMI does not define your health or your worth.</p>
-                        </div>
                     </div>
                     <p class="assistant-visual-disclaimer">
                         <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
@@ -384,15 +329,112 @@
                     </p>
                     <p class="sr-only" id="assistantStatus" aria-live="polite" aria-atomic="true"></p>
                 </div>
-            </div>
-        </section>
+                    <div class="card result-card dashboard-result" id="resultCard">
+                        <div class="result-empty" id="resultEmpty">
+                            <div class="result-empty-visual" aria-hidden="true">
+                                <svg viewBox="0 0 240 140" class="empty-gauge">
+                                    <path d="M20 120 A100 100 0 0 1 220 120" />
+                                    <line x1="120" y1="120" x2="68" y2="120" />
+                                    <circle cx="120" cy="120" r="6" />
+                                </svg>
+                            </div>
+                            <h3 data-i18n="result.emptyTitle">Your BMI will appear here</h3>
+                            <p data-i18n="result.emptyText">Enter your weight and height to see your result, healthy weight range, and practical guidance.</p>
+                            <span class="empty-reference" data-i18n="result.emptyNote">Adult reference range · 18.5–24.9</span>
+                        </div>
 
-        <section class="section calculator-section" id="calculator" aria-labelledby="calculatorTitle">
-            <div class="container">
-                <h2 class="sr-only" id="calculatorTitle" data-i18n="calc.title">BMI calculator</h2>
+                        <div class="result-content" id="resultContent" hidden>
+                            <div class="result-topline">
+                                <span class="result-label" data-i18n="result.label">Your result</span>
+                                <span class="category-pill" id="resultCategoryPill"></span>
+                            </div>
 
-                <div class="calculator-grid">
-                    <div class="card calculator-card">
+                            <div class="result-number-row">
+                                <div class="result-number-block">
+                                    <span class="bmi-number" id="bmiValue">--</span>
+                                    <span class="bmi-unit" data-i18n="result.bmiUnit">kg/m²</span>
+                                </div>
+                                <p class="result-category-name" id="resultCategoryName"></p>
+                            </div>
+
+                            <div class="gauge-wrap">
+                                <svg class="bmi-gauge" viewBox="0 0 320 176" aria-hidden="true" focusable="false">
+                                    <path class="gauge-track" d="M40 150 A120 120 0 0 1 280 150"></path>
+                                    <g id="gaugeSegments"></g>
+                                    <g class="gauge-needle" id="gaugeNeedle" transform="rotate(0 160 150)">
+                                        <line x1="160" y1="150" x2="58" y2="150"></line>
+                                    </g>
+                                    <circle class="gauge-cap" cx="160" cy="150" r="8"></circle>
+                                    <circle class="gauge-cap-inner" cx="160" cy="150" r="3.2"></circle>
+                                </svg>
+                                <div class="gauge-caption">
+                                    <span data-i18n="result.gaugeLow">Lower BMI</span>
+                                    <span class="healthy-key"><i aria-hidden="true"></i><span data-i18n="result.healthyKey">Healthy range</span></span>
+                                    <span data-i18n="result.gaugeHigh">Higher BMI</span>
+                                </div>
+                            </div>
+
+                            <div class="stat-grid">
+                                <div class="stat-card">
+                                    <span class="stat-label" data-i18n="result.healthyWeightLabel">Healthy weight for your height</span>
+                                    <strong id="healthyWeightRange">—</strong>
+                                    <small data-i18n="result.healthyWeightNote">Approximate reference range</small>
+                                </div>
+                                <div class="stat-card">
+                                    <span class="stat-label" data-i18n="result.healthyBmiLabel">Healthy BMI range</span>
+                                    <strong>18.5–24.9</strong>
+                                    <small data-i18n="result.bmiUnit">kg/m²</small>
+                                </div>
+                            </div>
+
+                            <p class="range-relation" id="rangeRelation"></p>
+
+                            <div class="age-warning" id="ageWarning" hidden>
+                                <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
+                                <p data-i18n="result.ageWarning">You entered an age under 20. Adult BMI categories may not be appropriate. Growth charts and a qualified professional are the right next step.</p>
+                            </div>
+
+                            <div class="result-actions">
+                                <button class="btn btn-primary" id="saveResultBtn" type="button">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-bookmark"></use></svg>
+                                    <span id="saveResultLabel" data-i18n="result.save">Save result</span>
+                                </button>
+                                <button class="btn btn-quiet" id="exportResultBtn" type="button">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-printer"></use></svg>
+                                    <span data-i18n="result.export">Export report</span>
+                                </button>
+                            </div>
+
+                            <details class="result-more">
+                                <summary data-i18n="result.moreDetails">Details &amp; guidance</summary>
+                                <div class="result-more-body">
+                                    <div class="comparison-card" id="comparisonCard" hidden>
+                                        <span class="comparison-icon" aria-hidden="true"><svg class="icon"><use href="#icon-trend-down" id="comparisonIconUse"></use></svg></span>
+                                        <p id="comparisonText"></p>
+                                    </div>
+
+                                    <div class="advice-card">
+                                        <span class="advice-icon" aria-hidden="true"><svg class="icon"><use href="#icon-heart"></use></svg></span>
+                                        <div>
+                                            <h4 data-i18n="result.adviceTitle">What this means</h4>
+                                            <p id="adviceText"></p>
+                                        </div>
+                                    </div>
+
+                                    <a class="result-guide-link" href="#assistant">
+                                        <span class="live-dot" aria-hidden="true"></span>
+                                        <span data-i18n="result.meetAssistant">See your guide’s reaction</span>
+                                        <svg class="icon" aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+                                    </a>
+
+                                    <p class="export-hint" data-i18n="result.exportHint">Opens your browser print dialog. Choose “Save as PDF” to download.</p>
+                                    <p class="result-disclaimer" data-i18n="result.disclaimer">BMI is a screening indicator for adults, not a medical diagnosis. It does not directly measure body fat or distinguish muscle from fat. Talk with a qualified healthcare professional about your individual health.</p>
+                                </div>
+                            </details>
+                        </div>
+                        <p class="sr-only" id="resultLive" aria-live="polite" aria-atomic="true"></p>
+                    </div>
+                    <div class="card calculator-card dashboard-controls">
                         <div class="card-heading">
                             <div>
                                 <h3 data-i18n="calc.panelTitle">Your measurements</h3>
@@ -508,106 +550,78 @@
                             <p class="privacy-line"><svg class="icon" aria-hidden="true"><use href="#icon-lock"></use></svg><span data-i18n="calc.privacy">Calculated in your browser. Nothing is uploaded.</span></p>
                         </form>
                     </div>
-
-                    <div class="card result-card" id="resultCard">
-                        <div class="result-empty" id="resultEmpty">
-                            <div class="result-empty-visual" aria-hidden="true">
-                                <svg viewBox="0 0 240 140" class="empty-gauge">
-                                    <path d="M20 120 A100 100 0 0 1 220 120" />
-                                    <line x1="120" y1="120" x2="68" y2="120" />
-                                    <circle cx="120" cy="120" r="6" />
-                                </svg>
-                            </div>
-                            <h3 data-i18n="result.emptyTitle">Your BMI will appear here</h3>
-                            <p data-i18n="result.emptyText">Enter your weight and height to see your result, healthy weight range, and practical guidance.</p>
-                            <span class="empty-reference" data-i18n="result.emptyNote">Adult reference range · 18.5–24.9</span>
-                        </div>
-
-                        <div class="result-content" id="resultContent" hidden>
-                            <div class="result-topline">
-                                <span class="result-label" data-i18n="result.label">Your result</span>
-                                <span class="category-pill" id="resultCategoryPill"></span>
-                            </div>
-
-                            <div class="result-number-row">
-                                <div class="result-number-block">
-                                    <span class="bmi-number" id="bmiValue">--</span>
-                                    <span class="bmi-unit" data-i18n="result.bmiUnit">kg/m²</span>
+                        <div class="assistant-panel dashboard-panel" id="assistantPanel">
+                            <div class="assistant-profile">
+                                <div class="assistant-identity">
+                                    <span class="assistant-presence" aria-hidden="true"><span></span></span>
+                                    <div>
+                                        <p class="assistant-name" data-i18n="assistant.name">Avery</p>
+                                        <p class="assistant-role" data-i18n="assistant.role">Wellness guide</p>
+                                    </div>
                                 </div>
-                                <p class="result-category-name" id="resultCategoryName"></p>
+                                <span class="assistant-state-pill" id="assistantStatePill" data-i18n="assistant.stateIdle">Ready when you are</span>
                             </div>
 
-                            <div class="gauge-wrap">
-                                <svg class="bmi-gauge" viewBox="0 0 320 176" aria-hidden="true" focusable="false">
-                                    <path class="gauge-track" d="M40 150 A120 120 0 0 1 280 150"></path>
-                                    <g id="gaugeSegments"></g>
-                                    <g class="gauge-needle" id="gaugeNeedle" transform="rotate(0 160 150)">
-                                        <line x1="160" y1="150" x2="58" y2="150"></line>
-                                    </g>
-                                    <circle class="gauge-cap" cx="160" cy="150" r="8"></circle>
-                                    <circle class="gauge-cap-inner" cx="160" cy="150" r="3.2"></circle>
-                                </svg>
-                                <div class="gauge-caption">
-                                    <span data-i18n="result.gaugeLow">Lower BMI</span>
-                                    <span class="healthy-key"><i aria-hidden="true"></i><span data-i18n="result.healthyKey">Healthy range</span></span>
-                                    <span data-i18n="result.gaugeHigh">Higher BMI</span>
+                            <div class="assistant-gender is-loading" id="assistantGender">
+                                <p class="assistant-gender-label" id="assistantGenderLabel" data-i18n="assistant.genderSelect">Select your character</p>
+                                <div class="assistant-gender-options" role="group" aria-labelledby="assistantGenderLabel">
+                                    <button class="gender-card" type="button" data-gender="male" aria-pressed="false">
+                                        <span class="gender-preview" aria-hidden="true">
+                                            <canvas id="assistantPreviewMale" width="360" height="200"></canvas>
+                                        </span>
+                                        <span class="gender-name" data-i18n="assistant.male">Male</span>
+                                        <span class="gender-check" aria-hidden="true"><svg class="icon"><use href="#icon-check"></use></svg></span>
+                                    </button>
+                                    <button class="gender-card" type="button" data-gender="female" aria-pressed="false">
+                                        <span class="gender-preview" aria-hidden="true">
+                                            <canvas id="assistantPreviewFemale" width="360" height="200"></canvas>
+                                        </span>
+                                        <span class="gender-name" data-i18n="assistant.female">Female</span>
+                                        <span class="gender-check" aria-hidden="true"><svg class="icon"><use href="#icon-check"></use></svg></span>
+                                    </button>
                                 </div>
                             </div>
 
-                            <div class="stat-grid">
-                                <div class="stat-card">
-                                    <span class="stat-label" data-i18n="result.healthyWeightLabel">Healthy weight for your height</span>
-                                    <strong id="healthyWeightRange">—</strong>
-                                    <small data-i18n="result.healthyWeightNote">Approximate reference range</small>
-                                </div>
-                                <div class="stat-card">
-                                    <span class="stat-label" data-i18n="result.healthyBmiLabel">Healthy BMI range</span>
-                                    <strong>18.5–24.9</strong>
-                                    <small data-i18n="result.bmiUnit">kg/m²</small>
+                            <div class="assistant-style" id="assistantStyle">
+                                <p class="assistant-gender-label" id="assistantStyleLabel" data-i18n="assistant.modelStyle">Model look</p>
+                                <div class="assistant-chip-row" role="group" aria-labelledby="assistantStyleLabel">
+                                    <button class="assistant-chip is-selected" type="button" data-model-style="natural" aria-pressed="true" data-i18n="assistant.styleNatural">Natural</button>
+                                    <button class="assistant-chip" type="button" data-model-style="clay" aria-pressed="false" data-i18n="assistant.styleClay">Studio Clay</button>
+                                    <button class="assistant-chip" type="button" data-model-style="scan" aria-pressed="false" data-i18n="assistant.styleScan">Bio-Scan</button>
                                 </div>
                             </div>
 
-                            <p class="range-relation" id="rangeRelation"></p>
-
-                            <div class="comparison-card" id="comparisonCard" hidden>
-                                <span class="comparison-icon" aria-hidden="true"><svg class="icon"><use href="#icon-trend-down" id="comparisonIconUse"></use></svg></span>
-                                <p id="comparisonText"></p>
-                            </div>
-
-                            <div class="age-warning" id="ageWarning" hidden>
-                                <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
-                                <p data-i18n="result.ageWarning">You entered an age under 20. Adult BMI categories may not be appropriate. Growth charts and a qualified professional are the right next step.</p>
-                            </div>
-
-                            <div class="advice-card">
-                                <span class="advice-icon" aria-hidden="true"><svg class="icon"><use href="#icon-heart"></use></svg></span>
-                                <div>
-                                    <h4 data-i18n="result.adviceTitle">What this means</h4>
-                                    <p id="adviceText"></p>
+                            <div class="assistant-view" id="assistantView">
+                                <p class="assistant-gender-label" id="assistantViewLabel" data-i18n="assistant.viewLabel">Camera view</p>
+                                <div class="assistant-chip-row" role="group" aria-labelledby="assistantViewLabel">
+                                    <button class="assistant-chip" type="button" data-camera-preset="threeQuarter" data-i18n="assistant.viewThreeQuarter">3/4 View</button>
+                                    <button class="assistant-chip" type="button" data-camera-preset="front" data-i18n="assistant.viewFront">Front</button>
+                                    <button class="assistant-chip" type="button" data-camera-preset="side" data-i18n="assistant.viewSide">Side</button>
                                 </div>
                             </div>
 
-                            <a class="result-guide-link" href="#assistant">
-                                <span class="live-dot" aria-hidden="true"></span>
-                                <span data-i18n="result.meetAssistant">See your guide’s reaction</span>
-                                <svg class="icon" aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
-                            </a>
+                            <div class="assistant-bubble" role="status" aria-live="polite" aria-atomic="true">
+                                <p id="assistantMessage" data-i18n="assistant.message.idle">Hi, I’m Avery. Enter your weight and height below, and I’ll help you make sense of the result with a little care and no judgment.</p>
+                            </div>
 
-                            <div class="result-actions">
-                                <button class="btn btn-primary" id="saveResultBtn" type="button">
-                                    <svg class="icon" aria-hidden="true"><use href="#icon-bookmark"></use></svg>
-                                    <span id="saveResultLabel" data-i18n="result.save">Save result</span>
+                            <div class="assistant-panel-footer">
+                                <button class="assistant-voice" id="assistantVoiceBtn" type="button" aria-pressed="false" disabled>
+                                    <svg class="icon voice-off-icon" aria-hidden="true"><use href="#icon-volume-off"></use></svg>
+                                    <svg class="icon voice-on-icon" aria-hidden="true"><use href="#icon-volume"></use></svg>
+                                    <span id="assistantVoiceLabel" data-i18n="assistant.voiceOff">Voice off</span>
                                 </button>
-                                <button class="btn btn-quiet" id="exportResultBtn" type="button">
-                                    <svg class="icon" aria-hidden="true"><use href="#icon-printer"></use></svg>
-                                    <span data-i18n="result.export">Export report</span>
+                                <button class="assistant-studio-open" id="openStudioBtn" type="button">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-expand"></use></svg>
+                                    <span data-i18n="studio.open">Open 3D studio</span>
                                 </button>
+                                <span class="assistant-local">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-lock"></use></svg>
+                                    <span data-i18n="assistant.privacyNote">Rendered locally. No health data leaves this device.</span>
+                                </span>
                             </div>
-                            <p class="export-hint" data-i18n="result.exportHint">Opens your browser print dialog. Choose “Save as PDF” to download.</p>
-                            <p class="result-disclaimer" data-i18n="result.disclaimer">BMI is a screening indicator for adults, not a medical diagnosis. It does not directly measure body fat or distinguish muscle from fat. Talk with a qualified healthcare professional about your individual health.</p>
+
+                            <p class="assistant-disclaimer" data-i18n="assistant.disclaimer">Educational support only — not a diagnosis. BMI does not define your health or your worth.</p>
                         </div>
-                        <p class="sr-only" id="resultLive" aria-live="polite" aria-atomic="true"></p>
-                    </div>
                 </div>
             </div>
         </section>
@@ -969,6 +983,33 @@
                 <button class="btn btn-primary" type="submit" data-i18n="settings.save">Save preferences</button>
             </div>
         </form>
+    </dialog>
+
+    <dialog class="studio-dialog" id="studioDialog" aria-labelledby="studioTitle">
+        <div class="studio-shell">
+            <header class="studio-head">
+                <div class="studio-title-wrap">
+                    <span class="studio-mark">
+                        <img src="black_box.jpg" alt="" width="32" height="32" decoding="async">
+                    </span>
+                    <div>
+                        <p class="studio-eyebrow" data-i18n="studio.eyebrow">Live workspace</p>
+                        <h2 id="studioTitle" data-i18n="studio.title">3D body studio</h2>
+                    </div>
+                </div>
+                <button class="icon-button" id="studioCloseBtn" type="button" aria-label="Close 3D studio" data-i18n-aria-label="settings.close">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
+                </button>
+            </header>
+            <div class="studio-scroll">
+                <div class="studio-grid">
+                    <div class="studio-slot studio-slot--stage" id="studioStageSlot"></div>
+                    <div class="studio-slot studio-slot--controls" id="studioControlsSlot"></div>
+                    <div class="studio-slot studio-slot--result" id="studioResultSlot"></div>
+                    <div class="studio-slot studio-slot--panel" id="studioPanelSlot"></div>
+                </div>
+            </div>
+        </div>
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden>

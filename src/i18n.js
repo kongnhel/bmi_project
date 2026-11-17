@@ -89,6 +89,18 @@ const en = {
   'assistant.disclaimer': 'Educational support only — not a diagnosis. BMI does not define your health or your worth.',
   'assistant.sceneReady': 'Interactive 3D guide ready.',
   'assistant.fallbackAnnounce': '3D view unavailable. Guidance remains available.',
+  'assistant.modelStyle': 'Model look',
+  'assistant.styleNatural': 'Natural',
+  'assistant.styleClay': 'Studio Clay',
+  'assistant.styleScan': 'Bio-Scan',
+  'assistant.viewLabel': 'Camera view',
+  'assistant.viewThreeQuarter': '3/4 View',
+  'assistant.viewFront': 'Front',
+  'assistant.viewSide': 'Side',
+
+  'studio.open': 'Open 3D studio',
+  'studio.eyebrow': 'Live workspace',
+  'studio.title': '3D body studio',
 
   'calc.eyebrow': 'BMI workspace',
   'calc.title': 'BMI calculator',
@@ -163,6 +175,7 @@ const en = {
   'result.export': 'Export report',
   'result.exportHint': 'Opens your browser print dialog. Choose “Save as PDF” to download.',
   'result.disclaimer': 'BMI is a screening indicator for adults, not a medical diagnosis. It does not directly measure body fat or distinguish muscle from fat. Talk with a qualified healthcare professional about your individual health.',
+  'result.moreDetails': 'Details & guidance',
 
   'cat.underweight': 'Underweight',
   'cat.healthy': 'Healthy weight',
@@ -397,6 +410,18 @@ const km = {
   'assistant.disclaimer': 'គាំទ្រដើម្បីការអប់រំតែប៉ុណ្ណោះ — មិនមែនការធ្វើរោគវិនិច្ឆ័យទេ។ BMI មិនកំណត់សុខភាព ឬតម្លៃរបស់អ្នកឡើយ។',
   'assistant.sceneReady': 'អ្នកណែនាំ 3D អន្តរកម្មបានរួចរាល់។',
   'assistant.fallbackAnnounce': 'មិនអាចបង្ហាញទិដ្ឋភាព 3D ទេ។ ការណែនាំនៅតែមាន។',
+  'assistant.modelStyle': 'រចនាប័ទ្មម៉ូដែល',
+  'assistant.styleNatural': 'ធម្មជាតិ',
+  'assistant.styleClay': 'ដីឥដ្ឋស្ទូឌីយោ',
+  'assistant.styleScan': 'ស្កេនជីវសាស្ត្រ',
+  'assistant.viewLabel': 'ទិដ្ឋភាពកាមេរ៉ា',
+  'assistant.viewThreeQuarter': 'ទិដ្ឋភាព 3/4',
+  'assistant.viewFront': 'ផ្នែកខាងមុខ',
+  'assistant.viewSide': 'ផ្នែកចំហៀង',
+
+  'studio.open': 'បើកស្ទូឌីយោ 3D',
+  'studio.eyebrow': 'កន្លែងធ្វើការផ្ទាល់',
+  'studio.title': 'ស្ទូឌីយោរាងកាយ 3D',
 
   'calc.eyebrow': 'កន្លែងគណនា BMI',
   'calc.title': 'ម៉ាស៊ីនគណនា BMI',
@@ -467,6 +492,7 @@ const km = {
   'result.export': 'នាំចេញរបាយការណ៍',
   'result.exportHint': 'បើកប្រអប់បោះពុម្ពរបស់កម្មវិធីរុករក។ ជ្រើស “រក្សាទុកជា PDF” ដើម្បីទាញយក។',
   'result.disclaimer': 'BMI គឺជាសូចនាករពិនិត្យបឋមសម្រាប់មនុស្សពេញវ័យ មិនមែនជាការធ្វើរោគវិនិច្ឆ័យផ្នែកវេជ្ជសាស្ត្រទេ។ វាមិនវាស់ខ្លាញ់ក្នុងខ្លួនដោយផ្ទាល់ ឬបែងចែករវាងសាច់ដុំ និងខ្លាញ់បានឡើយ។ សូមពិភាក្សាជាមួយអ្នកជំនាញថែទាំសុខភាពអំពីសុខភាពផ្ទាល់ខ្លួនរបស់អ្នក។',
+  'result.moreDetails': 'ព័ត៌មានលម្អិត និងការណែនាំ',
 
   'cat.underweight': 'ទម្ងន់ទាប',
   'cat.healthy': 'ទម្ងន់សុខភាព',

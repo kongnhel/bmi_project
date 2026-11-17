@@ -156,6 +156,13 @@ const el = {
   ageError: document.getElementById('ageError'),
   historyConsentToggle: document.getElementById('historyConsentToggle'),
   clearDataBtn: document.getElementById('clearDataBtn'),
+  studioDialog: document.getElementById('studioDialog'),
+  studioStageSlot: document.getElementById('studioStageSlot'),
+  studioControlsSlot: document.getElementById('studioControlsSlot'),
+  studioResultSlot: document.getElementById('studioResultSlot'),
+  studioPanelSlot: document.getElementById('studioPanelSlot'),
+  openStudioBtn: document.getElementById('openStudioBtn'),
+  studioCloseBtn: document.getElementById('studioCloseBtn'),
 
   toast: document.getElementById('toast'),
   toastMessage: document.getElementById('toastMessage'),
@@ -164,6 +171,40 @@ const el = {
   printReport: document.getElementById('printReport'),
   copyright: document.getElementById('copyrightNotice'),
 };
+
+let studioOrigins = null;
+
+function openStudio() {
+  if (!el.studioDialog || el.studioDialog.open || studioOrigins) return;
+  const nodes = [
+    document.getElementById('assistant'),
+    document.querySelector('.calculator-card'),
+    document.getElementById('resultCard'),
+    document.getElementById('assistantPanel'),
+  ];
+  const slots = [el.studioStageSlot, el.studioControlsSlot, el.studioResultSlot, el.studioPanelSlot];
+  if (nodes.some((node) => !node) || slots.some((slot) => !slot)) return;
+
+  studioOrigins = nodes.map((node, index) => {
+    const marker = document.createComment('studio-origin');
+    node.parentNode.insertBefore(marker, node);
+    slots[index].append(node);
+    return { node, marker };
+  });
+
+  el.studioDialog.showModal();
+  el.studioCloseBtn?.focus();
+}
+
+function restoreStudio() {
+  if (!studioOrigins) return;
+  for (const { node, marker } of studioOrigins) {
+    if (marker.parentNode) marker.parentNode.insertBefore(node, marker);
+    marker.remove();
+  }
+  studioOrigins = null;
+  el.openStudioBtn?.focus();
+}
 
 const prefs = readPreferences();
 state.lang = prefs.language ?? detectLanguage();
@@ -1473,6 +1514,10 @@ function bindEvents() {
       openSettingsDialog();
     });
   });
+
+  el.openStudioBtn?.addEventListener('click', openStudio);
+  el.studioCloseBtn?.addEventListener('click', () => el.studioDialog?.close());
+  el.studioDialog?.addEventListener('close', restoreStudio);
 
   document.querySelectorAll('[data-close-dialog]').forEach((button) => {
     button.addEventListener('click', () => {

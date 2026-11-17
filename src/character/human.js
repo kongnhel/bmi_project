@@ -1250,6 +1250,65 @@ export function createProceduralHuman({
     torso.scale.y = 1 + (reducedMotion ? 0 : Math.sin(elapsed * 1.45) * 0.0025);
   }
 
+  let modelStyle = 'natural';
+  let materialOriginals = null;
+
+  function captureMaterialOriginals() {
+    if (materialOriginals) return;
+    materialOriginals = [...materials].map((entry) => ({
+      material: entry,
+      color: entry.color?.clone() ?? null,
+      roughness: entry.roughness,
+      metalness: entry.metalness,
+      wireframe: entry.wireframe,
+      transparent: entry.transparent,
+      opacity: entry.opacity,
+      emissive: entry.emissive?.clone() ?? null,
+      emissiveIntensity: entry.emissiveIntensity,
+    }));
+  }
+
+  function applyModelStyle(style) {
+    const next = style === 'clay' || style === 'scan' ? style : 'natural';
+    captureMaterialOriginals();
+    if (next === modelStyle && next !== 'natural') return;
+    modelStyle = next;
+
+    for (const original of materialOriginals) {
+      const entry = original.material;
+      if (!entry) continue;
+      if (next === 'natural') {
+        if (original.color && entry.color) entry.color.copy(original.color);
+        entry.roughness = original.roughness;
+        entry.metalness = original.metalness;
+        entry.wireframe = original.wireframe;
+        entry.transparent = original.transparent;
+        entry.opacity = original.opacity;
+        if (original.emissive && entry.emissive) entry.emissive.copy(original.emissive);
+        entry.emissiveIntensity = original.emissiveIntensity;
+      } else if (next === 'clay') {
+        entry.color?.set(0xd4c5b5);
+        entry.roughness = 0.8;
+        entry.metalness = 0.02;
+        entry.wireframe = false;
+        entry.transparent = false;
+        entry.opacity = 1;
+        if (entry.emissive) entry.emissive.set(0x000000);
+        entry.emissiveIntensity = 0;
+      } else {
+        entry.color?.set(0x38bdf8);
+        entry.roughness = 0.3;
+        entry.metalness = 0.18;
+        entry.wireframe = true;
+        entry.transparent = true;
+        entry.opacity = 0.82;
+        if (entry.emissive) entry.emissive.set(0x0284c7);
+        entry.emissiveIntensity = 0.38;
+      }
+      entry.needsUpdate = true;
+    }
+  }
+
   return {
     group: root,
     setState(stateKey) {
@@ -1267,6 +1326,12 @@ export function createProceduralHuman({
     },
     setAnthropometrics({ heightCm } = {}) {
       targetHeightScale = heightScaleFor(heightCm);
+    },
+    setModelStyle(style) {
+      applyModelStyle(style);
+    },
+    getModelStyle() {
+      return modelStyle;
     },
     getBodyMorphs() {
       return { ...currentMorphs };

@@ -10,7 +10,7 @@ import {
 } from './body-shape.js';
 
 const CAMERA_LIMITS = Object.freeze({
-  yaw: [-0.8, 0.8],
+  yaw: [-1.45, 1.45],
   pitch: [-0.02, 0.24],
   distance: [3.05, 4.9],
 });
@@ -20,6 +20,12 @@ const CAMERA_HOME = Object.freeze({
   pitch: 0.075,
   distance: 3.6,
   targetY: 0.93,
+});
+
+const CAMERA_PRESETS = Object.freeze({
+  threeQuarter: CAMERA_HOME,
+  front: Object.freeze({ ...CAMERA_HOME, yaw: 0 }),
+  side: Object.freeze({ ...CAMERA_HOME, yaw: 1.45 }),
 });
 
 const CAMERA_BASE_FOV = 30;
@@ -51,6 +57,7 @@ export class AssistantScene {
     this.currentBmi = Number.isFinite(bmi) ? bmi : 22;
     this.currentHeightCm = 170;
     this.currentWeightKg = null;
+    this.currentStyle = 'natural';
     this.currentMorphState = getBodyMorphsForBmi(this.currentBmi);
     this.modelMixer = null;
     this.modelActions = new Map();
@@ -172,6 +179,7 @@ export class AssistantScene {
     human.setBodyMorphs(this.currentMorphState);
     human.setState(this.currentStateKey);
     human.setReducedMotion(this.reducedMotion);
+    human.setModelStyle(this.currentStyle);
     this.root.add(human.group);
     return human;
   }
@@ -386,6 +394,19 @@ export class AssistantScene {
     this.targetDistance = CAMERA_HOME.distance;
   }
 
+  setCameraPreset(preset) {
+    const next = CAMERA_PRESETS[preset] ?? CAMERA_PRESETS.threeQuarter;
+    this.targetYaw = next.yaw;
+    this.targetPitch = next.pitch;
+    this.targetDistance = next.distance;
+  }
+
+  setModelStyle(style) {
+    this.currentStyle = style === 'clay' || style === 'scan' ? style : 'natural';
+    this.human?.setModelStyle(this.currentStyle);
+    this.render();
+  }
+
   setTheme(theme) {
     this.configureTheme(theme);
   }
@@ -495,6 +516,11 @@ export class AssistantScene {
     if (this.running || this.disposed) return;
     this.running = true;
     this.lastTime = performance.now();
+    // Resuming after being offscreen or hidden can be momentarily janky, so
+    // restart the FPS warm-up window before trusting samples again.
+    this.fpsWarmUntil = performance.now() + 1200;
+    this.fpsSamples = 0;
+    this.fpsTime = 0;
     const tick = (now) => {
       if (!this.running || this.disposed) return;
       const delta = Math.min(0.05, Math.max(0.001, (now - this.lastTime) / 1000));

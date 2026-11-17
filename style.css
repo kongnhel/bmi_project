@@ -3458,8 +3458,7 @@ html[lang="km"] .footer-col h3 {
 }
 
 .assistant-shell {
-    display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(330px, 0.88fr);
+    display: block;
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 30px;
@@ -4025,6 +4024,83 @@ html[lang="km"] .assistant-gender-label {
 
 .gender-card.is-selected .gender-check {
     display: grid;
+}
+
+.assistant-style,
+.assistant-view {
+    margin-top: 14px;
+}
+
+.assistant-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.assistant-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.35;
+    transition: border-color 0.18s var(--ease), background-color 0.18s var(--ease),
+        color 0.18s var(--ease);
+}
+
+.assistant-chip:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-2);
+    color: var(--ink);
+}
+
+.assistant-chip.is-selected,
+.assistant-chip[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+}
+
+[data-theme="dark"] .assistant-chip.is-selected,
+[data-theme="dark"] .assistant-chip[aria-pressed="true"] {
+    color: #6ee7b7;
+}
+
+.assistant-studio-open {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 7px 11px;
+    border: 1px solid var(--accent-line);
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background-color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+[data-theme="dark"] .assistant-studio-open {
+    color: #6ee7b7;
+}
+
+.assistant-studio-open:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft-2);
+}
+
+.assistant-studio-open .icon {
+    width: 14px;
+    height: 14px;
 }
 
 .assistant-visual-disclaimer {
@@ -5868,6 +5944,222 @@ body {
         font-size: 10.5px;
         gap: 6px;
     }
+
+    .assistant-chip,
+    .assistant-studio-open {
+        min-height: 44px;
+    }
+
+    .assistant-chip {
+        padding-inline: 12px;
+        font-size: 11px;
+    }
+}
+
+.studio-dialog {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--bg);
+    color: var(--ink);
+    overflow: hidden;
+}
+
+.studio-dialog:not([open]) {
+    display: none;
+}
+
+.studio-dialog::backdrop {
+    background: rgba(4, 14, 11, 0.72);
+    backdrop-filter: blur(6px);
+}
+
+.studio-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.studio-head {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) clamp(14px, 2.5vw, 28px) 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--header-bg);
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
+}
+
+.studio-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.studio-mark {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    overflow: hidden;
+    border-radius: 11px;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(16, 32, 28, 0.08), var(--shadow-1);
+}
+
+.studio-mark img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.studio-eyebrow {
+    color: var(--faint);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+html[lang="km"] .studio-eyebrow {
+    letter-spacing: 0;
+    text-transform: none;
+    font-size: 10px;
+}
+
+.studio-head h2 {
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.studio-head .icon-button {
+    width: 44px;
+    height: 44px;
+    flex: none;
+}
+
+.studio-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: clamp(14px, 2vw, 24px) clamp(14px, 2.5vw, 32px)
+        calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
+.studio-grid {
+    display: grid;
+    grid-template-columns: minmax(270px, 330px) minmax(0, 1fr) minmax(280px, 360px);
+    grid-template-areas:
+        "controls stage result"
+        "panel panel panel";
+    align-items: start;
+    gap: 18px;
+    width: 100%;
+    max-width: 1600px;
+    margin-inline: auto;
+}
+
+.studio-slot {
+    min-width: 0;
+}
+
+.studio-slot--controls {
+    grid-area: controls;
+}
+
+.studio-slot--stage {
+    grid-area: stage;
+}
+
+.studio-slot--result {
+    grid-area: result;
+}
+
+.studio-slot--panel {
+    grid-area: panel;
+}
+
+.studio-slot > .card,
+.studio-slot > .hero-character,
+.studio-slot > .assistant-panel {
+    width: 100%;
+}
+
+.studio-slot .calculator-card,
+.studio-slot .result-card {
+    position: static;
+}
+
+.studio-dialog .assistant-shell {
+    border-radius: 24px;
+}
+
+.studio-dialog .assistant-stage {
+    height: auto;
+    min-height: clamp(360px, 46vh, 560px);
+    min-height: clamp(360px, 46svh, 560px);
+}
+
+.studio-dialog .assistant-studio-open {
+    display: none;
+}
+
+.studio-dialog .assistant-visual-disclaimer {
+    margin-top: 10px;
+}
+
+@media (max-width: 1180px) {
+    .studio-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "stage stage"
+            "controls result"
+            "panel panel";
+    }
+}
+
+@media (max-width: 780px) {
+    .studio-grid {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "stage"
+            "controls"
+            "result"
+            "panel";
+        gap: 14px;
+    }
+
+    .studio-eyebrow {
+        display: none;
+    }
+
+    .studio-head h2 {
+        font-size: 1.05rem;
+    }
+
+    .studio-scroll {
+        padding-inline: 14px;
+    }
+
+    .studio-dialog .assistant-stage {
+        min-height: 340px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -6131,3 +6423,795 @@ body {
     }
 }
 
+
+/* ==========================================================================
+   Unified BMI dashboard
+   The 3D guide, measurements and live result share one compact console.
+   ========================================================================== */
+
+.hero {
+    padding-block: clamp(18px, 2.6vw, 32px) clamp(36px, 4.5vw, 64px);
+}
+
+.hero-copy--compact {
+    max-width: 860px;
+}
+
+.hero-copy--compact h1 {
+    max-width: 24ch;
+    margin-top: 12px;
+    font-size: clamp(1.9rem, 3.3vw, 2.7rem);
+    letter-spacing: -0.04em;
+}
+
+.hero-copy--compact .hero-lead {
+    max-width: 66ch;
+    margin-top: 10px;
+    font-size: clamp(0.94rem, 1.05vw, 1rem);
+    line-height: 1.65;
+}
+
+.hero-copy--compact .trust-list {
+    margin-top: 12px;
+}
+
+@media (min-width: 1081px) {
+    .hero-copy--compact {
+        display: grid;
+        grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+        grid-template-areas:
+            "eyebrow lead"
+            "title lead"
+            "title trust";
+        align-items: end;
+        column-gap: clamp(32px, 4vw, 64px);
+        max-width: none;
+    }
+
+    .hero-copy--compact .eyebrow {
+        grid-area: eyebrow;
+        justify-self: start;
+    }
+
+    .hero-copy--compact h1 {
+        grid-area: title;
+        max-width: 20ch;
+        margin-top: 12px;
+    }
+
+    .hero-copy--compact .hero-lead {
+        grid-area: lead;
+        max-width: none;
+        margin-top: 0;
+        padding-bottom: 8px;
+    }
+
+    .hero-copy--compact .trust-list {
+        grid-area: trust;
+        margin-top: 8px;
+    }
+}
+
+.bmi-dashboard {
+    /* Dark health-tech console in both site themes. */
+    color-scheme: dark;
+    --bg: #041018;
+    --surface: #081b24;
+    --surface-2: #0c2430;
+    --surface-3: #123342;
+    --ink: #eef7fa;
+    --ink-soft: #d3e3ea;
+    --muted: #a7bfc8;
+    --faint: #8aa4ae;
+    --line: rgba(125, 211, 252, 0.16);
+    --line-strong: rgba(125, 211, 252, 0.3);
+    --accent: #2dd4bf;
+    --accent-hover: #5eead4;
+    --accent-strong: #5eead4;
+    --accent-soft: rgba(45, 212, 191, 0.12);
+    --accent-soft-2: rgba(45, 212, 191, 0.2);
+    --accent-line: rgba(45, 212, 191, 0.32);
+    --accent-contrast: #04231f;
+    --danger: #fda29b;
+    --danger-hover: #fecaca;
+    --danger-soft: rgba(249, 112, 102, 0.12);
+    --danger-line: rgba(249, 112, 102, 0.3);
+    --warning-bg: rgba(245, 158, 11, 0.12);
+    --warning-line: rgba(245, 158, 11, 0.28);
+    --warning-ink: #fcd34d;
+    --focus-ring: #5eead4;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.32);
+    --shadow-2: 0 22px 55px -32px rgba(0, 0, 0, 0.82), 0 2px 6px rgba(0, 0, 0, 0.28);
+    --shadow-3: 0 36px 90px -44px rgba(0, 0, 0, 0.9), 0 4px 14px rgba(0, 0, 0, 0.32);
+    --cat-underweight: #60a5fa;
+    --cat-underweight-soft: rgba(59, 130, 246, 0.16);
+    --cat-underweight-ink: #93c5fd;
+    --cat-underweight-line: rgba(96, 165, 250, 0.32);
+    --cat-healthy: #34d399;
+    --cat-healthy-soft: rgba(16, 185, 129, 0.14);
+    --cat-healthy-ink: #6ee7b7;
+    --cat-healthy-line: rgba(52, 211, 153, 0.3);
+    --cat-overweight: #fbbf24;
+    --cat-overweight-soft: rgba(245, 158, 11, 0.14);
+    --cat-overweight-ink: #fcd34d;
+    --cat-overweight-line: rgba(251, 191, 36, 0.3);
+    --cat-obesity1: #fb923c;
+    --cat-obesity1-soft: rgba(249, 115, 22, 0.14);
+    --cat-obesity1-ink: #fdba74;
+    --cat-obesity1-line: rgba(251, 146, 60, 0.3);
+    --cat-obesity2: #f87171;
+    --cat-obesity2-soft: rgba(239, 68, 68, 0.14);
+    --cat-obesity2-ink: #fca5a5;
+    --cat-obesity2-line: rgba(248, 113, 113, 0.3);
+    --cat-obesity3: #fb7185;
+    --cat-obesity3-soft: rgba(159, 18, 57, 0.26);
+    --cat-obesity3-ink: #fecdd3;
+    --cat-obesity3-line: rgba(251, 113, 133, 0.3);
+    --assistant-fallback-halo: rgba(45, 212, 191, 0.12);
+    --assistant-fallback-scrub: #0f8f85;
+    --assistant-fallback-scrub-dark: #0a6a64;
+    --assistant-fallback-skin: #d6a57e;
+    --assistant-fallback-skin-shadow: #bd8966;
+    --assistant-fallback-hair: #2b211d;
+    --assistant-fallback-lip: #a26b64;
+    --assistant-fallback-shirt: #eaf3f2;
+    --assistant-fallback-scope: #c9d7db;
+
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: minmax(300px, 1.16fr) minmax(300px, 1.02fr) minmax(272px, 0.88fr);
+    grid-template-areas:
+        "stage result controls"
+        "panel panel panel";
+    align-items: stretch;
+    gap: 14px;
+    margin-top: clamp(16px, 2.2vw, 26px);
+    padding: clamp(12px, 1.5vw, 16px);
+    border: 1px solid rgba(125, 211, 252, 0.14);
+    border-radius: clamp(22px, 2.4vw, 30px);
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgba(45, 212, 191, 0.1), transparent 62%),
+        linear-gradient(180deg, #071924 0%, #04121a 100%);
+    box-shadow: var(--shadow-3);
+    color: var(--ink);
+    scroll-margin-top: calc(var(--header-height) + 16px);
+}
+
+.bmi-dashboard::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-image:
+        linear-gradient(rgba(125, 211, 252, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(125, 211, 252, 0.045) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: radial-gradient(75% 65% at 50% 0%, #000 15%, transparent 78%);
+    -webkit-mask-image: radial-gradient(75% 65% at 50% 0%, #000 15%, transparent 78%);
+    pointer-events: none;
+}
+
+#assistant {
+    grid-area: stage;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.dashboard-result {
+    grid-area: result;
+}
+
+.dashboard-controls {
+    grid-area: controls;
+}
+
+.dashboard-panel {
+    grid-area: panel;
+}
+
+.bmi-dashboard .assistant-shell {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--line-strong);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+}
+
+.bmi-dashboard .assistant-stage {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: clamp(400px, 48vh, 520px);
+    border-radius: 17px;
+    background:
+        radial-gradient(72% 62% at 64% 12%, rgba(45, 212, 191, 0.16), transparent 58%),
+        radial-gradient(62% 55% at 18% 88%, rgba(56, 189, 248, 0.12), transparent 66%),
+        linear-gradient(165deg, #071d28 0%, #04121a 100%);
+}
+
+.bmi-dashboard .assistant-viewport {
+    inset: 52px 6px 96px;
+}
+
+.bmi-dashboard .assistant-visual-disclaimer {
+    margin-top: 10px;
+    font-size: 9.5px;
+}
+
+.bmi-dashboard .card {
+    border-color: var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+}
+
+.bmi-dashboard .calculator-card,
+.bmi-dashboard .result-card {
+    min-height: 0;
+    padding: 16px;
+}
+
+.bmi-dashboard .calculator-card {
+    align-self: start;
+}
+
+.bmi-dashboard .result-card {
+    background:
+        radial-gradient(90% 55% at 100% 0%, var(--accent-soft) 0%, transparent 60%),
+        var(--surface);
+}
+
+.bmi-dashboard .card-heading {
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.bmi-dashboard .card-heading h3 {
+    font-size: 1.04rem;
+}
+
+.bmi-dashboard .card-heading p {
+    margin-top: 3px;
+    font-size: 11.5px;
+    line-height: 1.5;
+}
+
+.bmi-dashboard .on-device-badge {
+    min-height: 24px;
+    padding: 3px 8px;
+    font-size: 9.5px;
+}
+
+.bmi-dashboard .unit-switch {
+    margin-bottom: 14px;
+    padding: 3px;
+}
+
+.bmi-dashboard .unit-option span {
+    min-height: 38px;
+    gap: 6px;
+    padding: 5px 8px;
+}
+
+.bmi-dashboard .unit-option strong {
+    font-size: 12.5px;
+}
+
+.bmi-dashboard .unit-option small {
+    font-size: 10px;
+}
+
+.bmi-dashboard .slider-field,
+.bmi-dashboard .slider-field + .slider-field {
+    margin-top: 13px;
+}
+
+.bmi-dashboard .slider-number {
+    font-size: 1.35rem;
+}
+
+.bmi-dashboard .measurement-slider {
+    height: 40px;
+}
+
+.bmi-dashboard .measurement-slider::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    margin-top: -9px;
+}
+
+.bmi-dashboard .measurement-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+}
+
+.bmi-dashboard .manual-entry {
+    margin-top: 12px;
+}
+
+.bmi-dashboard .form-actions--live {
+    margin-top: 12px;
+    padding-top: 12px;
+}
+
+.bmi-dashboard .privacy-line {
+    margin-top: 8px;
+    font-size: 10px;
+}
+
+.bmi-dashboard #resultEmpty {
+    min-height: 320px;
+}
+
+.bmi-dashboard .result-topline {
+    gap: 8px;
+}
+
+.bmi-dashboard .bmi-number {
+    font-size: clamp(2.9rem, 4vw, 3.8rem);
+}
+
+.bmi-dashboard .result-number-row {
+    margin-top: 8px;
+}
+
+.bmi-dashboard .result-category-name {
+    font-size: 11.5px;
+}
+
+.bmi-dashboard .gauge-wrap {
+    margin-top: 10px;
+}
+
+.bmi-dashboard .bmi-gauge {
+    max-width: 100%;
+    max-height: 150px;
+}
+
+.bmi-dashboard .gauge-caption {
+    margin-top: 4px;
+    font-size: 8.5px;
+}
+
+.bmi-dashboard .stat-grid {
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.bmi-dashboard .stat-card {
+    padding: 9px 11px;
+}
+
+.bmi-dashboard .stat-card strong {
+    font-size: 1.02rem;
+}
+
+.bmi-dashboard .stat-card small {
+    font-size: 9.5px;
+}
+
+.bmi-dashboard .range-relation {
+    margin-top: 9px;
+    font-size: 11.5px;
+}
+
+.bmi-dashboard .comparison-card {
+    margin-top: 9px;
+    padding: 9px 11px;
+    font-size: 11.5px;
+}
+
+.bmi-dashboard .advice-card {
+    margin-top: 10px;
+    padding: 11px 12px;
+}
+
+.bmi-dashboard .advice-card h4 {
+    font-size: 10px;
+}
+
+.bmi-dashboard .advice-card p {
+    font-size: 11.5px;
+    line-height: 1.55;
+}
+
+.bmi-dashboard .result-guide-link {
+    min-height: 38px;
+    margin-top: 8px;
+    font-size: 11px;
+}
+
+.bmi-dashboard .result-actions {
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.bmi-dashboard .result-actions .btn {
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+}
+
+.bmi-dashboard .result-more {
+    margin-top: 10px;
+    border-top: 1px solid var(--line);
+}
+
+.bmi-dashboard .result-more summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 40px;
+    padding: 8px 2px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+.bmi-dashboard .result-more summary::-webkit-details-marker {
+    display: none;
+}
+
+.bmi-dashboard .result-more summary::after {
+    content: "";
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-right: 3px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.18s var(--ease);
+}
+
+.bmi-dashboard .result-more[open] summary::after {
+    transform: rotate(225deg);
+}
+
+.bmi-dashboard .result-more-body {
+    padding-bottom: 2px;
+}
+
+.bmi-dashboard .result-more .comparison-card {
+    margin-top: 0;
+}
+
+.bmi-dashboard .result-more .advice-card {
+    margin-top: 8px;
+}
+
+.bmi-dashboard .result-more .result-guide-link {
+    min-height: 42px;
+}
+
+.bmi-dashboard .result-more .export-hint {
+    margin-top: 6px;
+}
+
+.bmi-dashboard .result-more .result-disclaimer {
+    margin-top: 10px;
+}
+
+.bmi-dashboard .export-hint,
+.bmi-dashboard .result-disclaimer {
+    margin-top: 8px;
+    font-size: 9.5px;
+    line-height: 1.55;
+}
+
+.dashboard-panel {
+    display: grid;
+    grid-template-columns: minmax(170px, 0.82fr) minmax(210px, 1.02fr) minmax(200px, 0.95fr) minmax(240px, 1.25fr);
+    grid-template-areas:
+        "profile gender style view"
+        "bubble bubble footer footer"
+        "disclaimer disclaimer disclaimer disclaimer";
+    align-items: start;
+    gap: 12px 18px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+}
+
+.dashboard-panel .assistant-profile {
+    grid-area: profile;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.dashboard-panel .assistant-gender {
+    grid-area: gender;
+    margin-top: 0;
+}
+
+.dashboard-panel .assistant-style {
+    grid-area: style;
+    margin-top: 0;
+}
+
+.dashboard-panel .assistant-view {
+    grid-area: view;
+    margin-top: 0;
+}
+
+.dashboard-panel .assistant-bubble {
+    grid-area: bubble;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 8px 16px 16px 16px;
+}
+
+.dashboard-panel .assistant-bubble::before {
+    top: 22px;
+}
+
+.dashboard-panel .assistant-bubble p {
+    font-size: 0.86rem;
+    line-height: 1.55;
+}
+
+.dashboard-panel .assistant-panel-footer {
+    grid-area: footer;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px 14px;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.dashboard-panel .assistant-disclaimer {
+    grid-area: disclaimer;
+    margin-top: 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    font-size: 9.5px;
+}
+
+.dashboard-panel .assistant-gender-label {
+    margin-bottom: 6px;
+    font-size: 8.5px;
+}
+
+.dashboard-panel .assistant-gender-options {
+    margin-top: 0;
+    gap: 7px;
+}
+
+.dashboard-panel .gender-card {
+    min-height: 76px;
+    border-radius: 13px;
+}
+
+.dashboard-panel .gender-name {
+    bottom: 5px;
+    font-size: 9.5px;
+}
+
+.dashboard-panel .assistant-chip {
+    min-height: 28px;
+    padding: 3px 8px;
+    font-size: 9px;
+}
+
+.dashboard-panel .assistant-chip-row {
+    margin-top: 4px;
+}
+
+.dashboard-panel .assistant-state-pill {
+    min-height: 24px;
+    padding: 3px 8px;
+    font-size: 9px;
+}
+
+.dashboard-panel .assistant-presence {
+    width: 30px;
+    height: 30px;
+}
+
+.dashboard-panel .assistant-name {
+    font-size: 1rem;
+}
+
+.dashboard-panel .assistant-role {
+    font-size: 9px;
+}
+
+.dashboard-panel .assistant-voice,
+.dashboard-panel .assistant-studio-open {
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 10px;
+}
+
+.dashboard-panel .assistant-local {
+    font-size: 9px;
+}
+
+/* Tablet: character beside the result, sliders underneath the result. */
+@media (max-width: 1080px) {
+    .bmi-dashboard {
+        grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
+        grid-template-areas:
+            "stage result"
+            "stage controls"
+            "panel panel";
+    }
+
+    .bmi-dashboard .assistant-stage {
+        min-height: clamp(460px, 62vh, 600px);
+    }
+}
+
+/* Phones and small tablets: character, result, sliders, then the extras. */
+@media (max-width: 900px) {
+    .bmi-dashboard {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "stage"
+            "result"
+            "controls"
+            "panel";
+        gap: 10px;
+    }
+
+    .bmi-dashboard .assistant-stage {
+        flex: none;
+        height: clamp(280px, 38svh, 340px);
+        min-height: 0;
+    }
+
+    .bmi-dashboard .assistant-viewport {
+        inset: 44px 4px 62px;
+    }
+
+    .bmi-dashboard .assistant-hint {
+        bottom: 70px;
+        font-size: 9px;
+    }
+
+    .bmi-dashboard .assistant-controls {
+        bottom: 8px;
+    }
+
+    .dashboard-panel {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "profile gender"
+            "style view"
+            "bubble bubble"
+            "footer footer"
+            "disclaimer disclaimer";
+    }
+
+    .dashboard-panel .assistant-panel-footer {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 560px) {
+    .hero {
+        padding-top: 12px;
+        padding-bottom: 40px;
+    }
+
+    .hero-copy--compact h1 {
+        font-size: clamp(1.7rem, 7.2vw, 2.1rem);
+    }
+
+    .hero-copy--compact .trust-list {
+        gap: 6px 14px;
+    }
+
+    .bmi-dashboard {
+        gap: 9px;
+        padding: 9px;
+        border-radius: 20px;
+    }
+
+    .bmi-dashboard .assistant-shell {
+        border-radius: 15px;
+    }
+
+    .bmi-dashboard .assistant-stage {
+        height: clamp(250px, 33svh, 300px);
+        border-radius: 14px;
+    }
+
+    .bmi-dashboard .assistant-viewport {
+        inset: 40px 2px 58px;
+    }
+
+    .bmi-dashboard .assistant-control {
+        width: 44px;
+        height: 44px;
+    }
+
+    .bmi-dashboard .assistant-controls {
+        gap: 1px;
+        padding: 3px;
+    }
+
+    .bmi-dashboard .assistant-hint {
+        bottom: 68px;
+    }
+
+    .hero-copy--compact .hero-lead {
+        margin-top: 8px;
+        font-size: 0.86rem;
+        line-height: 1.55;
+    }
+
+    .hero-copy--compact .trust-list {
+        margin-top: 8px;
+        font-size: 11px;
+    }
+
+    .bmi-dashboard .card {
+        border-radius: 15px;
+    }
+
+    .bmi-dashboard .calculator-card,
+    .bmi-dashboard .result-card {
+        padding: 13px;
+    }
+
+    .bmi-dashboard .card-heading {
+        margin-bottom: 12px;
+    }
+
+    .bmi-dashboard .bmi-number {
+        font-size: 2.55rem;
+    }
+
+    .bmi-dashboard .gauge-wrap {
+        display: none;
+    }
+
+    .bmi-dashboard .stat-grid {
+        grid-template-columns: 1fr 1fr;
+        margin-top: 9px;
+    }
+
+    .bmi-dashboard .result-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+        margin-top: 9px;
+    }
+
+    .bmi-dashboard .result-actions .btn {
+        width: auto;
+        min-height: 42px;
+        padding: 9px 8px;
+        font-size: 11.5px;
+    }
+
+    .dashboard-panel {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "profile"
+            "gender"
+            "style"
+            "view"
+            "bubble"
+            "footer"
+            "disclaimer";
+        gap: 10px;
+        padding: 12px;
+        border-radius: 15px;
+    }
+
+    .dashboard-panel .assistant-bubble p {
+        font-size: 0.82rem;
+    }
+}
